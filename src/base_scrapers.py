@@ -73,8 +73,11 @@ class BaseScraper:
     def get_resp_from_req(self, url:str) -> str:
         """ Returns websites response (requests.models.Response object) or raise an exception if request failed """
         resp = requests.get(url, headers=self.HEADERS)
-        if resp.ok:
+        # TODO
+        if resp.ok and len(resp.text) != 0:
             return resp
+        elif resp.ok and len(resp.text) == 0:
+            return []
         else:
             raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
 

@@ -10,6 +10,8 @@ Zrobione:
 - vegemi.pl
 - ohmyveggies.com
 - upieczona.pl   ---->   wp
+- www.littlehungrylady.pl   ---->   wp
+- www.alaantkoweblw.pl   ---->   wp
 
 ---------------------------------
 Jeszcze będę próbować:
@@ -33,11 +35,9 @@ Do sprawdzenia - niewegańskie:
 - www.aniagotuje.pl   ---->   https://api.aniagotuje.pl/ (403)
 - www.pasjasmaku.com   ---->   wp
 - www.kwestiasmaku.com   ---->   coś innego
-- www.littlehungrylady.pl   ---->   wp
 - www.flymetothespoon.com   ---->   wp
 - www.lekkibrzusio.blogspot.com   ---->   coś innego
 - www.michalwrzosek.pl   ---->   wp
 - www.zielonysrodek.pl   ---->   wp
 - www.wilkuchnia.pl   ---->   coś innego
-- www.alaantkoweblw.pl   ---->   wp
 - www.truetastehunters.com   ---->   coś innego

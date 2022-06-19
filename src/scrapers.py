@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from pprint import pprint
 
 from base_scrapers import BaseScraper, WordPressScraper, CuisineType, MealType
+from utils import do_lists_have_common_element, do_list_includes_list
 
 # class NotImplementedError(Exception):
 #     pass
@@ -41,7 +42,8 @@ class MadeleineOliviaScraper(BaseScraper):
         for recipe in web_resp["items"]:
 
             # skips if meal_types are given but recipe categories do not contain none of the wanted types
-            if meal_types is None or self.common_category(recipe["categories"], meal_types):
+            if meal_types is None or do_lists_have_common_element(recipe["categories"], meal_types):
+                # print("in")
                 title = recipe["title"]
                 link = self.RECIPE_URL + recipe['urlId']
 
@@ -54,7 +56,7 @@ class MadeleineOliviaScraper(BaseScraper):
         resp = resp.json()
 
         recipes = []
-        for recipe in self.get_data_from_resp(resp, meal_types):
+        for recipe in self.get_data_from_resp(resp, meal_types=meal_types):
             recipes.append(recipe)
 
         return recipes
@@ -67,18 +69,18 @@ class MadeleineOliviaScraper(BaseScraper):
             resp = self.get_resp_from_req(url)
             resp = resp.json()
 
-            for recipe in self.get_data_from_resp(resp, meal_types):
+            for recipe in self.get_data_from_resp(resp, meal_types=meal_types):
                 if recipe not in recipes:
                     recipes.append(recipe)
 
         return recipes
 
-    def common_category(self, list_1:list=None, list_2:list=None):
-        """ Checks if two lists have at least one common element """
-        if (set(list_1) & set(list_2)):
-            return True
-        else:
-            return False
+    # def common_category(self, list_1:list=None, list_2:list=None):
+    #     """ Checks if two lists have at least one common element """
+    #     if (set(list_1) & set(list_2)):
+    #         return True
+    #     else:
+    #         return False
 
     def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str="full", web_url:str=None) -> str:
         """ Returns url ready to be send """
@@ -295,7 +297,7 @@ class HealthyLivingJamesScraper(WordPressScraper):
 
     EXCLUDE_CATEGORY_ID = 1392
     VEGAN_CATEGORY_ID = 1393
-    WEB_URL = f"https://healthylivingjames.co.uk/wp-json/wp/v2/posts?per_page=100&category_excluded={EXCLUDE_CATEGORY_ID}"
+    WEB_URL = f"https://healthylivingjames.co.uk/wp-json/wp/v2/posts?per_page=100&categories_exclude={EXCLUDE_CATEGORY_ID}"
 
     def __init__(self):
         super().__init__()
@@ -430,19 +432,13 @@ class OhMyVeggiesScraper(WordPressScraper):
         """ Checks if current recipe should be excluded - it should if `ingrs_match` is 'full',
         but recipe do not have all wanted ingredients in its ingredients. """
         if ingrs_match == "full":
-            if not self.all_ingrs_tags_in_tags(recipe["tags"], ingrs):
+            if not do_list_includes_list(recipe["tags"], ingrs):
                 return True
             return False
         elif ingrs_match == "partial":
             return False
         else:
             raise Exception(f"`ingrs_match` must be 'full' or 'partial', not {ingrs_match}")
-
-    def all_ingrs_tags_in_tags(self, recipe_tags:list=None, wanted_tags:list=None):
-        """ Returns True if common part of lists is equal to `wanted_tags` """
-        if set(recipe_tags) | set(wanted_tags) == set(wanted_tags):
-            return True
-        return False
 
     def finally_change_data_to_url(self, ingrs:list, meal_types:list) -> (list, list):
         """ The last change of params before putting them into url """
@@ -533,6 +529,47 @@ class LittleHungryLadyScraper(WordPressScraper):
             MealType.SOUP: [1139],  # 'zupa'
             MealType.TO_BREAD: None,
             MealType.SNACKS: None,
+            MealType.SAUCE: None,
+        }
+        return trans[meal_type]
+
+class AlaantkoweblwScraper(WordPressScraper):
+    """ Searches posts using 'search' arg, filters meal_types using 'categories' arg and excludes non-vegan category """
+    NAME = "alaantkoweBLW"
+    DIET = CuisineType.REGULAR
+
+    # categories to be excluded
+    EXCLUDE_CATEGORIES_IDS = [5, 9, 51]  # 'mieso', 'jajka', 'ryba'
+    # categories 'without ...' - check if they are in categories
+    VEGAN_CATEGORIES_IDS = [33, 130, 32]  # 'bez-jajka', 'bez-miesa', 'bez-nabialu'
+    # category showing that post is a recipe
+    RECIPE_CAT_ID = 133  # 'przepisy-blw'
+    WEB_URL = f"https://alaantkoweblw.pl/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
+              f"{'+'.join([str(category_id) for category_id in EXCLUDE_CATEGORIES_IDS])}"
+
+    def __init__(self):
+        super().__init__()
+
+        self.ingr_param = "&search="
+        self.meal_type_param = "&categories="
+
+    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str="full") -> bool:
+        if self.RECIPE_CAT_ID not in recipe["categories"]:
+            return True
+        if not do_list_includes_list(recipe["categories"], self.VEGAN_CATEGORIES_IDS):
+            return True
+        return False
+
+    def meal_type_trans(self, meal_type:str=None):
+        trans = {
+            MealType.DESSERT: [48, 7, 8, 232, 166, 139],  # 'babeczki-i-muffinki', 'ciasta-i-ciastka', 'inne-slodkosci', 'lody', 'tort', 'zdrowe-slodycze'
+            MealType.DRINK: [67, 42],  # 'co-do-picia', 'do-picia'
+            MealType.DINNER: [45, 38, 4, 49, 46],  # 'dania-z-makaronem', 'kolacja', 'obiad', 'pierogi-i-kluski', 'zapiekanki'
+            MealType.SNACKS: [147, 31],  # 'gofry', 'podwieczorek'
+            MealType.TO_BREAD: [48, 39],  # 'kolacja', 'na-chleb'
+            MealType.LUNCH: [16],  # 'na-wynos'
+            MealType.BREAKFAST: [52, 47, 14],  # 'nalesniki', 'placki', 'sniadanie'
+            MealType.SOUP: [22],  # 'zupy'
             MealType.SAUCE: None,
         }
         return trans[meal_type]
