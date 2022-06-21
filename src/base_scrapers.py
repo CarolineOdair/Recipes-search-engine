@@ -1,28 +1,10 @@
 import html
-from pprint import pprint
 import requests
 
 from bs4 import BeautifulSoup
 from googletrans import Translator
 
-class NotImplementedError(Exception):
-    pass
-
-class CuisineType:
-    VEGAN = "vegan"
-    VEGETARIAN = "vegetarian"
-    REGULAR = "with meat"
-
-class MealType:
-    BREAKFAST = "sniadanie"
-    SOUP = "zupy"
-    DINNER = "danie glowne"
-    LUNCH = "po pracy"
-    TO_BREAD = "do chleba"
-    DESSERT = "desery"
-    DRINK = "napoje"
-    SAUCE = "sosy"
-    SNACKS = "przekaski"
+from utils import do_list_includes_list
 
 class BaseScraper:
     NAME = None
@@ -31,7 +13,9 @@ class BaseScraper:
 
     def __init__(self):
         if self.WEB_URL is None:
-            raise Exception("`url` is None, must be a string.")
+            raise Exception("`WEB_URL` is None, must be a string.")
+        if self.DIET is None:
+            raise NotImplementedError("`DIET` is None, must be MealTypes class property ")
 
         self.HTML_PARSER = "html.parser"
         self.HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0',
@@ -58,7 +42,7 @@ class BaseScraper:
         """ Adds meal types' parameter to url """
         return url
 
-    def add_params_to_url(self, params: list, url: str, connector: str = ",", param_name: str = None, word_conn:str="-") -> str:
+    def add_params_to_url(self, params:list, url:str, connector:str=",", param_name:str=None, word_conn:str="-") -> str:
         """ Adds parameters to the url """
         if params is not None:
             if param_name:
@@ -92,7 +76,8 @@ class BaseScraper:
                 "recipes": recipes,
                 "n_recipes": len(recipes)}
 
-    def get_cleaned_data(self, data: dict) -> dict:
+    def clean_data(self, data:dict) -> dict:
+        """ Cleans titles from characters encoded with html """
         replace = {"\xa0": " ", "<em>": "", "</em>": ""}
         if data["recipes"]:
             for recipe in data["recipes"]:
@@ -107,7 +92,11 @@ class BaseScraper:
             return data
         return data
 
-    def pl_en_translate(self, words: list) -> list:
+    def get_cleaned_data(self, data:dict):
+        """ Cleans data from unwanted characters """
+        return data
+
+    def pl_en_translate(self, words:list) -> list:
         """ Translates list of ingredients from polish to english """
         translator = Translator()
         translation = [translator.translate(word).text.lower() for word in words]
@@ -121,7 +110,6 @@ class BaseScraper:
         """ Modifies title in final data """
         return link
 
-
 class WordPressScraper(BaseScraper):
     def __init__(self):
         super().__init__()
@@ -133,7 +121,6 @@ class WordPressScraper(BaseScraper):
 
     def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str="full") -> dict:
         """ Main function, returns recipes which fulfill the conditions"""
-        self.add_extra_self_params(ingrs, meal_types, ingrs_match)
 
         if self.exclude_by_params(ingrs, meal_types, ingrs_match):
             return self.data_to_dict([])
@@ -148,12 +135,10 @@ class WordPressScraper(BaseScraper):
         else:
             raise ValueError(f"`ingrs_match` must be 'full' or 'partial', not '{ingrs_match}'")
 
-        data = self.data_to_dict(recipes)  # add info to dict
-        data = self.get_cleaned_data(data)
+        data = self.data_to_dict(recipes)  # add data to dict
+        data = self.clean_data(data)  # universal cleaning
+        data = self.get_cleaned_data(data)  # cleaning specified for website
         return data
-
-    def add_extra_self_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str=None) -> None:
-        pass
 
     def exclude_by_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str="full") -> bool:
         """ Checks if parameters fulfill the conditions which will exclude entire request. """
@@ -188,17 +173,18 @@ class WordPressScraper(BaseScraper):
         return recipes
 
     def get_recipe_from_resp(self, recipe, ingrs, meal_types, check_in_soup:bool=True, ingrs_match:str="full") -> dict:
+        """ Takes recipe and users search properties like ingredients, meal_types and ingrs_match
+        and return recipe's title and link """
         add = True
         if self.exclude_one_recipe(recipe, ingrs, meal_types, ingrs_match):
             add = False
 
-        else:
-            if check_in_soup:
-                soup = BeautifulSoup(recipe["content"]["rendered"], features="html.parser")
-                soup = soup.get_text().lower()
-                for ingr in ingrs:
-                    if ingr.lower() not in soup:
-                        add = False
+        elif check_in_soup:
+            soup = BeautifulSoup(recipe["content"]["rendered"], features="html.parser")
+            soup = soup.get_text().lower()
+            for ingr in ingrs:
+                if ingr.lower() not in soup:
+                    add = False
 
         if add:
             title = recipe["title"]["rendered"]
@@ -259,3 +245,94 @@ class WordPressScraper(BaseScraper):
 
     def meal_type_trans(self, group_type:str=None):
         raise NotImplementedError()
+
+class TagsSearchingWordPressScraper(WordPressScraper):
+    TAG_URL = None
+
+    def __init__(self):
+        super().__init__()
+
+        if self.TAG_URL is None:
+            raise NotImplementedError("`TAG_URL` is None, must be a string.")
+
+    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str="full") -> dict:
+        """ Main function, returns recipes which fulfill the conditions """
+        ingrs_copy = ingrs.copy()  # to check if every ingredient has its tag
+
+        # ingredients and meal_types changes
+        ingrs_, meal_types_ = self.prep_args(ingrs, meal_types)
+
+        # if user wants full ingredients' match but not all of them have the tags
+        if ingrs_match == "full" and len(ingrs_copy) != len(ingrs_):
+            return self.data_to_dict([])
+
+        recipes = self.get_recipes_from_params(ingrs_, meal_types_, ingrs_match)
+
+        data = self.data_to_dict(recipes)  # add data to dict
+        data = self.clean_data(data)  # universal cleaning
+        data = self.get_cleaned_data(data)  # cleaning specified for website
+        return data
+
+    def prep_args(self, ingrs:list=None, meal_types:list=None) -> (list, list):
+        """ Changes ingredients and meal_types given by user so they can be put into url """
+
+        # MealType to webs categories
+        meal_types_ = self.get_meal_types_translated(meal_types)
+        # changes data before getting ingredients tags
+        ingrs_, meal_type_ = self.prep_data_to_get_tags(ingrs, meal_types_)
+        # typically written ingrs to web's tags
+        ingrs_ = self.get_ingrs_tags(ingrs_, self.TAG_URL)
+        # last change before putting into url
+        ingrs_, meal_types_ = self.finally_change_data_to_url(ingrs_, meal_types_)
+
+        return ingrs_, meal_types_
+
+    def prep_data_to_get_tags(self, ingrs:list=None, meal_types:list=None):
+        """ Changes data before getting ingredients tags """
+        return ingrs, meal_types
+
+    def get_ingrs_tags(self, ingrs:list, url:str):
+        """ Takes list of strings and url and returns list of their tags """
+        url = self.add_params_to_url(params=ingrs, url=url, connector="+", word_conn="-")
+        resp = self.get_resp_from_req(url)
+        resp = resp.json()
+        tags = [(tag["id"]) for tag in resp]
+        return tags
+
+    def get_recipes_from_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str="full"):
+        """ Makes request, filters data and returns list of recipes """
+        url = self.get_url(ingrs, meal_types)
+        resp = self.get_resp_from_req(url)
+        resp = resp.json()
+
+        recipes = []
+
+        ingrs = [int(ingr) for ingr in ingrs]  # `ingrs` is a list of ints - ingredients' tags
+        for recipe in resp:  # loop through items in website's response
+            valid_recipe = self.get_recipe_from_resp(recipe, ingrs, meal_types, ingrs_match=ingrs_match,
+                                                     check_in_soup=False)
+
+            # if recipe is excluded for some reason, `get_recipe_from_resp` returns None and it needs to be omitted
+            if valid_recipe:
+                recipes.append(valid_recipe)
+
+        return recipes
+
+    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str="full") -> bool:
+        """ Checks if current recipe should be excluded - it should if `ingrs_match` is 'full'
+        but recipe do not have all wanted ingredients in its ingredients. """
+        if self.web_recipe_exclusion_con(recipe, ingrs, meal_types, ingrs_match):
+            return True
+
+        if ingrs_match == "full":
+            if not do_list_includes_list(recipe["tags"], ingrs):
+                return True
+            return False
+        elif ingrs_match == "partial":
+            return False
+        else:
+            raise Exception(f"`ingrs_match` must be 'full' or 'partial', not {ingrs_match}")
+
+    def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None, ingrs_match:str="full"):
+        """ Checks if current recipe should be excluded - returns True if it should, otherwise returns False """
+        return False

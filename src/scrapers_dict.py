@@ -1,8 +1,10 @@
 import scrapers
 
 scrapers_ = {
+    "AlaantkoweBlw": scrapers.AlaantkoweblwScraper,
     "Aga ma Smaka": scrapers.AgaMaSmakaScraper,
     "erVegan": scrapers.ErVeganScraper,
+    "FlyMeToTheSpoon": scrapers.FlyMeToTheSpoonScraper,
     "Healthy Living James": scrapers.HealthyLivingJamesScraper,
     "Healthy Omnomnom": scrapers.HealthyOmnomnomScraper,
     "Jadłonomia": scrapers.JadlonomiaScraper,

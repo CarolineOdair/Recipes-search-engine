@@ -9,3 +9,22 @@ def do_list_includes_list(including_list:list, included_list:list):
     """ Returns True if common part of lists is equal to `wanted_tags` """
     check = all(item in including_list for item in included_list)
     return check
+
+class NotImplementedError(Exception):
+    pass
+
+class CuisineType:
+    VEGAN = "vegan"
+    VEGETARIAN = "vegetarian"
+    REGULAR = "with meat"
+
+class MealType:
+    BREAKFAST = "sniadanie"
+    SOUP = "zupy"
+    DINNER = "danie glowne"
+    LUNCH = "lunch"
+    TO_BREAD = "do chleba"
+    DESSERT = "desery"
+    DRINK = "napoje"
+    SAUCE = "sosy"
+    SNACKS = "przekaski"
