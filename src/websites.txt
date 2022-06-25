@@ -13,26 +13,23 @@ Zrobione:
 - www.littlehungrylady.pl   ---->   wp
 - www.alaantkoweblw.pl   ---->   wp
 - www.flymetothespoon.com   ---->   wp
+- www.zielonysrodek.pl   ---->   wp
+- www.olgasmile.pl   ---->   wp
+- www.befitbestrong.pl   ---->   wp
+- www.weganon.pl
 
 ---------------------------------
 Nie:
-- www.ekspresjasmaku.com (nie wszystkie są wegańskie, ale bardzo dużo)
-- www.weganon.pl
+- www.ekspresjasmaku.com
 
-- owsiana.pl
 ---------------------------------
 Do sprawdzenia - wegańskie
 - www.wegannerd.blogspot.com
 - www.weganka.com
 - www.veganbanda.pl
 
-Do sprawdzenia - niewegańskie:
-- www.olgasmile.pl   ---->   wp
-- www.befitbestrong.pl   ---->   wp
 - www.aniagotuje.pl   ---->   https://api.aniagotuje.pl/ (403)
 - www.kwestiasmaku.com   ---->   coś innego
-- www.lekkibrzusio.blogspot.com   ---->   coś innego
 - www.michalwrzosek.pl   ---->   wp
-- www.zielonysrodek.pl   ---->   wp
 - www.wilkuchnia.pl   ---->   coś innego
 - www.truetastehunters.com   ---->   coś innego

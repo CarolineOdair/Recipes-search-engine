@@ -10,6 +10,10 @@ def do_list_includes_list(including_list:list, included_list:list):
     check = all(item in including_list for item in included_list)
     return check
 
+def list_el_merged_with_plus(list_to_merge:list) -> str:
+    """ Merges list of ints/floats/strings with '+' """
+    return '+'.join([str(category_id) for category_id in list_to_merge])
+
 class NotImplementedError(Exception):
     pass
 

@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
+import requests
 
 from base_scrapers import BaseScraper, WordPressScraper, TagsSearchingWordPressScraper
-from utils import do_lists_have_common_element, do_list_includes_list
+from utils import do_lists_have_common_element, do_list_includes_list, list_el_merged_with_plus
 from utils import CuisineType, MealType
 
 
@@ -15,7 +16,7 @@ class MadeleineOliviaScraper(BaseScraper):
     def __init__(self):
         super().__init__()
 
-    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str="full") -> dict:
+    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str="full", *args, **kwargs) -> dict:
         """ Main function, returns recipes which fulfill the conditions """
 
         ingrs, meal_types = self.prep_args(ingrs, meal_types)
@@ -32,7 +33,7 @@ class MadeleineOliviaScraper(BaseScraper):
         data = self.clean_data(data)  # clean data
         return data
 
-    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None):
+    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs):
         """ Filters data about recipe and returns useful part - title and link """
 
         # loop through recipes
@@ -72,7 +73,7 @@ class MadeleineOliviaScraper(BaseScraper):
 
         return recipes
 
-    def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str="full", web_url:str=None) -> str:
+    def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str="full", web_url:str=None, *args, **kwargs) -> str:
         """ Returns url ready to be send """
         if web_url is None:
             web_url = self.WEB_URL
@@ -115,7 +116,7 @@ class JadlonomiaScraper(BaseScraper):
     def __init__(self):
         super().__init__()
 
-    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str="full") -> dict:
+    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str="full", *args, **kwargs) -> dict:
         """ Main function, returns recipes which fulfill the conditions """
         # translates meal_types to website friendly version (e.x. `sniadanie` to `sniadania`)
         if meal_types:
@@ -132,7 +133,7 @@ class JadlonomiaScraper(BaseScraper):
         data = self.clean_data(data)  # clean data
         return data
 
-    def get_url(self, ingrs:list, meal_type:list=None, ingrs_match:str="full", web_url:str=None) -> str:
+    def get_url(self, ingrs:list, meal_type:list=None, ingrs_match:str="full", web_url:str=None, *args, **kwargs) -> str:
         """ Returns url ready to be send """
 
         if web_url is None:
@@ -149,7 +150,7 @@ class JadlonomiaScraper(BaseScraper):
             return "+"  # means "and"
         return ","  # means "or"
 
-    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None):
+    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs):
         """ Filters response and returns only useful information about recipes - title and link """
         soup = BeautifulSoup(web_resp, self.HTML_PARSER)
         recipe_grid = soup.find(class_="clear row")
@@ -297,7 +298,7 @@ class HealthyLivingJamesScraper(WordPressScraper):
         self.ingr_param = "&search="
         self.meal_type_param = "&categories="
 
-    def finally_change_data_to_url(self, ingrs:list, meal_types:list):
+    def finally_change_data_to_url(self, ingrs:list, meal_types:list, *args, **kwargs):
         """ Translates ingredients from polish to english """
         ingrs = self.pl_en_translate(ingrs)
         return ingrs, meal_types
@@ -365,7 +366,7 @@ class VegeMiScraper(WordPressScraper):
 
         self.ingr_param = "&search="
 
-    def exclude_by_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str="full") -> bool:
+    def exclude_by_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str="full", *args, **kwargs) -> bool:
         """ Reject entire seek if there's `meal_types` given """
         if meal_types is not None:
             return True
@@ -386,7 +387,7 @@ class OhMyVeggiesScraper(TagsSearchingWordPressScraper):
         self.ingr_param = "&tags="
         self.meal_type_param = "&categories="
 
-    def prep_data_to_get_tags(self, ingrs:list=None, meal_types:list=None):
+    def prep_data_to_get_tags(self, ingrs:list=None, meal_types:list=None, *args, **kwargs):
         """ The last change of params before putting them into url. Returns (ingrs, meal_types)"""
         ingrs_ = self.pl_en_translate(ingrs)
         return ingrs_, meal_types
@@ -420,7 +421,7 @@ class UpieczonaScraper(WordPressScraper):
         self.ingr_param = "&search="
         self.meal_type_param = "&categories="
 
-    def exclude_by_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str="full") -> bool:
+    def exclude_by_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str="full", *args, **kwargs) -> bool:
         """ Checks if the request should be made - if `meal_types` is given but doesn't contain MealType.DESSERT,
         request shouldn't be made """
         if meal_types is None:
@@ -429,7 +430,7 @@ class UpieczonaScraper(WordPressScraper):
             return True
         return False
 
-    def get_meal_types_translated(self, meal_types:list) -> list:
+    def get_meal_types_translated(self, meal_types:list, *args, **kwargs) -> list:
         """ Returns 'None' because contrarily to the most WordPress websites in the project
         this one doesn't have division on meal types """
         return None
@@ -450,7 +451,7 @@ class LittleHungryLadyScraper(WordPressScraper):
         self.ingr_param = "&search="
         self.meal_type_param = "&tag="
 
-    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str="full") -> bool:
+    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str="full", *args, **kwargs) -> bool:
         """ Excludes the post if there's no 'recipe' category """
         if self.RECIPE_CATEGORY_ID not in recipe["categories"]:
             return True
@@ -482,7 +483,7 @@ class AlaantkoweblwScraper(WordPressScraper):
     # category showing that post is a recipe
     RECIPE_CAT_ID = 133  # 'przepisy-blw'
     WEB_URL = f"https://alaantkoweblw.pl/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
-              f"{'+'.join([str(category_id) for category_id in EXCLUDE_CATEGORIES_IDS])}"
+              f"{list_el_merged_with_plus(EXCLUDE_CATEGORIES_IDS)}"
 
     def __init__(self):
         super().__init__()
@@ -490,7 +491,8 @@ class AlaantkoweblwScraper(WordPressScraper):
         self.ingr_param = "&search="
         self.meal_type_param = "&categories="
 
-    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str="full") -> bool:
+    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str="full", *args, **kwargs) -> bool:
+        """ Excludes the post if there's no 'recipe' and 'vegan' category """
         if self.RECIPE_CAT_ID not in recipe["categories"]:
             return True
         if not do_list_includes_list(recipe["categories"], self.VEGAN_CATEGORIES_IDS):
@@ -532,7 +534,8 @@ class FlyMeToTheSpoonScraper(TagsSearchingWordPressScraper):
         self.ingr_param = "&tags="
         self.meal_type_param = "&categories="
 
-    def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None, ingrs_match:str="full"):
+    def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None, ingrs_match:str="full", *args, **kwargs):
+        """ Excludes the post if there's no 'recipe' and 'vegan' category """
         must_include_categories = [self.RECIPE_CATEGORY_ID, self.VEGAN_CATEGORY_ID]
         if not do_list_includes_list(recipe["categories"], must_include_categories):
             return True
@@ -550,3 +553,223 @@ class FlyMeToTheSpoonScraper(TagsSearchingWordPressScraper):
             MealType.TO_BREAD: None,
         }
         return trans[meal_type]
+
+class ZielonySrodekScraper(TagsSearchingWordPressScraper):
+    """ Searches posts using ingredients' tags and meal_types using 'categories' arg """
+    NAME = "zielony środek"
+    DIET = CuisineType.REGULAR
+
+    TAG_URL = "https://zielonysrodek.pl/wp-json/wp/v2/tags?slug="
+
+    # category showing that post is a recipe
+    RECIPE_CATEGORY_ID = 4  # 'przepis'
+    # category showing that post is perceived as vegan
+    VEGAN_CATEGORY_ID = 85  # 'weganskie'
+    WEB_URL = f"https://zielonysrodek.pl/wp-json/wp/v2/posts?per_page=100"
+
+    def __init__(self):
+        super().__init__()
+
+        self.ingr_param = "&tags="
+        self.meal_type_param = "&categories="
+
+    def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None, ingrs_match:str="full", *args, **kwargs):
+        """ Excludes the post if there's no 'recipe' and 'vegan' category """
+        must_include_categories = [self.RECIPE_CATEGORY_ID, self.VEGAN_CATEGORY_ID]
+        if not do_list_includes_list(recipe["categories"], must_include_categories):
+            return True
+        return False
+
+    def meal_type_trans(self, meal_type:str=None):
+        trans = {
+            MealType.DESSERT: [199, 106],  # 'ciastka', 'slodycze'
+            MealType.DRINK: [105],  # 'napoje'
+            MealType.LUNCH: [174, 53],  # 'placki-i-kotleciki', 'salatki'
+            MealType.DINNER: [23, 53],  # 'dania-glowne', 'salatki'
+            MealType.SNACKS: [36],  # 'przekaski'
+            MealType.BREAKFAST: [14],  # 'sniadania'
+            MealType.SOUP: [31],  # 'zupy'
+            MealType.TO_BREAD: None,
+        }
+        return trans[meal_type]
+
+class OlgaSmileScraper(TagsSearchingWordPressScraper):
+    """ Searches posts using ingredients' tags and meal_types using 'categories' arg """
+    NAME = "Olga Smile"
+    DIET = CuisineType.REGULAR
+
+    TAG_URL = "https://olgasmile.com/wp-json/wp/v2/tags?slug="
+
+    # categories to be excluded
+    EXCLUDED_CATEGORIES_ID = [28, 4382]  # 'mieso-wedliny-ryby-owoce-morza', 'jajka'
+    VEGAN_RECIPE_CATEGORY_ID = 156  # 'dieta-weganska'
+    WEB_URL = f"https://olgasmile.com/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
+              f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_ID)}"
+
+    def __init__(self):
+        super().__init__()
+
+        self.ingr_param = "&tags="
+        self.meal_type_param = "&categories="
+
+    def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None, ingrs_match:str="full", *args, **kwargs):
+        """ Excludes the post if there's no 'vegan' category """
+        if self.VEGAN_RECIPE_CATEGORY_ID not in recipe["categories"]:
+            return True
+        return False
+
+    def meal_type_trans(self, meal_type:str=None):
+        trans = {
+            MealType.DESSERT: [142, 26, 16, 17],  # 'desery', 'slodkie-desery', 'ciasta-chleby-desery', 'ciasteczka'
+            MealType.DRINK: [18],  # 'napoje-drinki-koktajle'
+            MealType.LUNCH: [139, 44],  # 'lunch', 'tarty-quiche-fritata'
+            MealType.DINNER: [5, 140, 23],  # 'co-na-obiad', 'obiad', 'makaron-w-wielu-odslonach'
+            MealType.SNACKS: [36, 93, 92],  # 'przekaski', 'cieple-przekaski-przystawki', 'zimne-przekaski-przystawki'
+            MealType.BREAKFAST: [138, 14743, 6769, 14793],  # 'sniadania', 'placki', 'platki-owsiane', 'nalesniki'
+            MealType.SOUP: [30],  # 'zupy'
+            MealType.TO_BREAD: [48],  # 'pasty-do-chleba'
+        }
+        return trans[meal_type]
+
+class BeFitBeStrongScraper(TagsSearchingWordPressScraper):
+    """ Searches posts using ingredients' tags and meal_types using 'categories' arg """
+    NAME = "Be Fit Be Strong"
+    DIET = CuisineType.REGULAR
+
+    TAG_URL = "https://befitbestrong.pl/wp-json/wp/v2/tags?slug="
+
+    # categories to be excluded
+    EXCLUDED_CATEGORIES_ID = [49, 447]  # 'mieso-i-ryby', owoce-morza
+    VEGAN_RECIPE_CATEGORY_ID = 2  # 'weganskie'
+    WEB_URL = f"https://befitbestrong.pl/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
+              f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_ID)}"
+
+    def __init__(self):
+        super().__init__()
+
+        self.ingr_param = "&tags="
+        self.meal_type_param = "&categories="
+
+    def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None, ingrs_match:str="full", *args, **kwargs):
+        """ Excludes the post if there's no 'vegan' category """
+        if self.VEGAN_RECIPE_CATEGORY_ID not in recipe["categories"]:
+            return True
+        return False
+
+    def meal_type_trans(self, meal_type:str=None):
+        trans = {
+            MealType.DESSERT: [33, 6, 528, 14, 51, 105, 83],  # 'ciasta', 'ciasteczka', 'deserki', 'desery', 'lody', 'muffinki-i-babeczki', 'tarty-na-slodko'
+            MealType.DINNER: [427, 142, 82, 536, 22, 90, 56, 443, 529],  # 'domowy-fast-food', 'kluskipierogikopytka',
+            # 'makarony', 'nalesniki-na-slono', 'obiady', 'salatki-i-surowki', 'sosydipypesto', 'szybki-obiad', 'szybki-obiad-obiady'
+            MealType.LUNCH: [44, 90, 148],  # 'lunchbox', 'salatki-i-surowki', 'tarty-na-slono'
+            MealType.DRINK: [75],  # 'napoje'
+            MealType.TO_BREAD: [39],  # 'pasty-na-kanapke'
+            MealType.BREAKFAST: [41, 525, 532, 42],  # 'placki-i-nalesniki', 'placki-na-slodko', 'placki-na-slono', 'sniadanie'
+            MealType.SNACKS: [528, 10, 90, 148],  # 'deserki', 'przekaska', 'salatki-i-surowki', 'tarty-na-slono'
+            MealType.SOUP: [24],  # 'zupy'
+        }
+        return trans[meal_type]
+
+class WeganonScraper(BaseScraper):
+    NAME = "Weganon"
+    DIET = CuisineType.VEGAN
+
+    WEB_URL = "https://weganon.pl/page/{}/?post_type=post"
+
+    def __init__(self):
+        super().__init__()
+
+    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str="full", *args, **kwargs) -> dict:
+        """ Main function, returns recipes which fulfill the conditions """
+
+        if meal_types:
+            meal_types = self.get_meal_types_translated(meal_types)
+
+        if ingrs_match == "full":
+            recipes = self.get_full_match_recipes(ingrs, meal_types=meal_types)
+        elif ingrs_match == "partial":
+            recipes = self.get_partial_match_recipes(ingrs, meal_types=meal_types)
+        else:
+            raise Exception(f"`ingrs_match` must be 'full' or 'partial', not {ingrs_match}")
+
+        data = self.data_to_dict(recipes)
+        data = self.clean_data(data)
+
+        return data
+
+    def get_full_match_recipes(self, ingrs:list, meal_types:list=None, *args, **kwargs) -> list:
+        """ Return list of recipes which ingredients match fully """
+        recipes = []
+        for recipe in self.get_match_recipes(ingrs, meal_types):
+            if recipe not in recipes:
+                recipes.append(recipe)
+        return recipes
+
+    def get_partial_match_recipes(self, ingrs:list, meal_types:list=None, *arg, **kwargs):
+        """ Return list of recipes which ingredients match partially """
+        recipes = []
+
+        for ingr in ingrs:
+            for recipe in self.get_match_recipes([ingr], meal_types=meal_types):
+                if recipe not in recipes:
+                    recipes.append(recipe)
+
+        return recipes
+
+    def get_match_recipes(self, ingrs:list, meal_types:list=None, *arg, **kwargs):
+        """ Creates and makes requests and yields recipes which are returns in the requests """
+        for url in self.get_url(ingrs, meal_types):
+            resp = self.get_resp_from_req(url)
+            # loops through next pages: 1st, 2nd, 3rd ect. and stops when ther's no such page (status_code 404 occurs) -
+            if resp.status_code == 404:
+                break
+
+            for recipe in self.get_data_from_resp(resp.text):
+                yield recipe
+
+    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs):
+        """ Gets web's response and returns dictionary with recipes' title and link """
+        soup = BeautifulSoup(web_resp, self.HTML_PARSER)
+        container = soup.find(class_="row")
+
+        recipes_container = container.find_all(class_="fix-special")
+        for recipe in recipes_container:
+            recipe_info_container = recipe.find(class_="item-title").a
+            link = recipe_info_container["href"]
+            title = recipe_info_container["title"]
+
+            yield self.recipe_data_to_dict(title=title, link=link)
+
+    def get_resp_from_req(self, url:str, *args, **kwargs) -> str:
+        """ Returns websites response (requests.models.Response object) or raise an exception if request failed """
+        resp = requests.get(url, headers=self.HEADERS)
+        if resp.ok or resp.status_code == 404:
+            return resp
+        else:
+            raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
+
+    def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str="full", web_url:str=None, *args, **kwargs) -> str:
+        """ Return url ready to be sent """
+        url = self.WEB_URL
+        url = self.add_params_to_url(ingrs, url, param_name="&s=")
+        url = self.add_params_to_url(meal_types, url, param_name="&category_name=")
+
+        n_page = 1
+        while True:
+            yield url.format(n_page)
+            n_page += 1
+
+    def meal_type_trans(self, meal_type:str=None) -> list:
+        trans = {
+            MealType.DESSERT: ["na-slodko"],
+            MealType.DINNER: ["dania-obiadowe"],
+            MealType.LUNCH:["salatki"],
+            MealType.TO_BREAD: ["pasty-do-pieczywa"],
+            MealType.SOUP: ["zupy-i-kremy"],
+            MealType.BREAKFAST: ["sniadania"],
+            MealType.SNACKS: None,
+            MealType.DRINK: None,
+        }
+        if meal_type in trans.keys():
+            return trans[meal_type]
+        return None
