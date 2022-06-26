@@ -13,9 +13,12 @@ scrapers_ = {
     "Olga Smile": scrapers.OlgaSmileScraper,
     "Oh My Veggies": scrapers.OhMyVeggiesScraper,
     "Upieczona": scrapers.UpieczonaScraper,
+    "Warzywizm": scrapers.WarzywizmScraper,
+    "weganbanda": scrapers.WeganbandaScraper,
     "Weganon": scrapers.WeganonScraper,
     "Wegepedia": scrapers.WegepediaScraper,
     "vegenerat-biegowy": scrapers.VegeneratBiegowyScraper,
     "VegeMi": scrapers.VegeMiScraper,
+    "Zen w kuchni": scrapers.ZenWKuchniScraper,
     "zielony środek": scrapers.ZielonySrodekScraper,
 }

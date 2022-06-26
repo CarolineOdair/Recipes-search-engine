@@ -75,6 +75,14 @@ class BaseScraper:
         else:
             raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
 
+    def get_resp_from_req_with_404(self, url:str, *args, **kwargs) -> str:
+        """ Returns websites response (requests.models.Response object) and 404 or raise an exception if request failed """
+        resp = requests.get(url, headers=self.HEADERS)
+        if resp.ok or resp.status_code == 404:
+            return resp
+        else:
+            raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
+
     def recipe_data_to_dict(self, title:str=None, link:str=None) -> dict:
         """ Returns dict with info about a recipe """
         return {"title": title, "link": link}
@@ -126,8 +134,8 @@ class BaseScraper:
 class WordPressScraper(BaseScraper):
     def __init__(self):
         super().__init__()
-        self.ingr_param = None
-        self.meal_type_param = None
+        self.ingr_param = "&search="
+        self.meal_type_param = "&categories="
 
         self.words_url_connector = "+"
         self.elements_url_connector = "+"
@@ -256,6 +264,9 @@ class TagsSearchingWordPressScraper(WordPressScraper):
 
         if self.TAG_URL is None:
             raise NotImplementedError("`TAG_URL` is None, must be a string.")
+
+        self.ingr_param = "&tags="
+        self.meal_type_param = "&categories="
 
     def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str="full", *args, **kwargs) -> dict:
         """ Main function, returns recipes which fulfill the conditions """

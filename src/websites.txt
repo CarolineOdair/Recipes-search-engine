@@ -17,19 +17,14 @@ Zrobione:
 - www.olgasmile.pl   ---->   wp
 - www.befitbestrong.pl   ---->   wp
 - www.weganon.pl
+- warzywizm.pl   -----> wp
+- zenwkuchni.com  -----> wp
+- www.veganbanda.pl
+- www.wilkuchnia.pl   ---->   wp
 
 ---------------------------------
-Nie:
 - www.ekspresjasmaku.com
-
----------------------------------
-Do sprawdzenia - wegańskie
 - www.wegannerd.blogspot.com
 - www.weganka.com
-- www.veganbanda.pl
-
-- www.aniagotuje.pl   ---->   https://api.aniagotuje.pl/ (403)
 - www.kwestiasmaku.com   ---->   coś innego
-- www.michalwrzosek.pl   ---->   wp
-- www.wilkuchnia.pl   ---->   coś innego
 - www.truetastehunters.com   ---->   coś innego
