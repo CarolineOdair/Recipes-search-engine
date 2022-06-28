@@ -1,3 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+
 from scrapers_dict import scrapers_
 
 class ScraperMenager:
@@ -5,12 +8,40 @@ class ScraperMenager:
         self.scrapers = [scraper() for scraper in scrapers_.values()]
 
     def get_recipes(self, *args, **kwargs):
+        start = datetime.now()
         recipes = [scraper.get_recipes(*args, **kwargs) for scraper in self.scrapers]
+        print(f"Time taken: {datetime.now()-start}")
 
-        # temp
-        count = 0
-        for website in recipes:
-            count += website["n_recipes"]
-        print(f"Recipes - sum - {count}")
+        self.args = args
+        self.kwargs = kwargs
+
+        # start = datetime.now()
+        # recipes = self.manage_many_scrapers_at_once(self.scrapers)
+        # print(f"Time taken: {datetime.now()-start}")
+
+        count = sum([recipe["n_recipes"] for recipe in recipes])
+        print(count)
+
+        return recipes
+
+    def manage_many_scrapers_at_once(self, scrapers=None):
+        """
+            No token refreshing here, when token expires just start over
+            This method is primarily meant for testing
+            It can be used in production, but some adjustments should be made
+        """
+        recipes = []
+
+        def make_request(scraper):
+            args = self.args
+            kwargs = self.kwargs
+            web_recipes = scraper.get_recipes(*args, **kwargs)
+            recipes.append(web_recipes)
+
+        def make_all_requests(scrapers) -> None:
+            with ThreadPoolExecutor(max_workers=15) as executor:
+                executor.map(make_request, scrapers)
+
+        make_all_requests(scrapers)
 
         return recipes
