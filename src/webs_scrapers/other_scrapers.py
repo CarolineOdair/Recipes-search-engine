@@ -360,18 +360,22 @@ class WeganbandaScraper(BaseScraper):
         """ Creates url, makes requests and returns list of recipes """
         recipes = []
 
-        for url in self.get_url(ingrs, meal_types,ingrs_match, web_url):
-            print(url)
-            resp = self.get_resp_from_req_with_404(url)
-            # loops through pages: 1st, 2nd, 3rd and so on and when there's no more (response with status code 404 occurs), stops
-            if resp.status_code == 404:
-                break
-            if self.NOT_FOUND_RECIPES_MSG in resp.text:
-                break
+        try:
+            for url in self.get_url(ingrs, meal_types,ingrs_match, web_url):
 
-            for recipe in self.get_data_from_resp(resp.text):
-                if recipe not in recipes:
-                    recipes.append(recipe)
+                resp = self.get_resp_from_req_with_404(url)
+                # loops through pages: 1st, 2nd, 3rd and so on and when there's no more (response with status code 404 occurs), stops
+                if resp.status_code == 404:
+                    break
+                if self.NOT_FOUND_RECIPES_MSG in resp.text:
+                    break
+
+                for recipe in self.get_data_from_resp(resp.text):
+                    if recipe not in recipes:
+                        recipes.append(recipe)
+
+        except Exception:
+            logging.exception(EXCEPTION_LOG_MSG)
 
         return recipes
 
@@ -419,5 +423,106 @@ class WeganbandaScraper(BaseScraper):
             MealType.BREAKFAST: ["sniadania"],
             MealType.SOUP: ["zupy"],
             MealType.DESSERT: None,
+        }
+        return trans.get(meal_type)
+
+class EkspresjaSmakuScraper(BaseScraper):
+    NAME = "Ekspresja Smaku"
+    DIET = CuisineType.VEGAN
+    WEB_URL = "https://ekspresjasmaku.com"
+
+    NOT_FOUND_RECIPES_MSG = "Szukana fraza nie została znaleziona, spróbuj ponownie"
+
+    REQUEST_URL = WEB_URL + "/page/{}/?s"
+
+    def __init__(self):
+        super().__init__()
+
+        self.ingr_param = "&tag="
+        self.meal_type_param = "&cat="
+
+    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
+        """ Main function, returns recipes which fulfill the conditions """
+        ingrs_copy = ingrs.copy()
+        meal_types_copy = self.meal_types_copy(meal_types)
+
+        meal_types = self.get_meal_types_translated(meal_types)
+
+        if meal_types_copy is not None and len(meal_types) == 0:
+            return self.data_to_dict([])
+
+        recipes = self.get_match_recipes(ingrs, meal_types, ingrs_match, self.REQUEST_URL)
+
+        data = self.data_to_dict(recipes)
+        data = self.clean_data(data)
+        return data
+
+    def get_match_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL,
+                          web_url:str=None, *args, **kwargs) -> list:
+        """ Creates url, makes requests and returns list of recipes """
+        recipes = []
+
+        try:
+            for url in self.get_url(ingrs, meal_types,ingrs_match, web_url):
+                resp = self.get_resp_from_req_with_404(url)
+                # loops through pages: 1st, 2nd, 3rd and so on and when there's no more (response with status code 404 occurs), stops
+                if resp.status_code == 404:
+                    break
+                if self.NOT_FOUND_RECIPES_MSG in resp.text:
+                    break
+
+                for recipe in self.get_data_from_resp(resp.text):
+                    if recipe not in recipes:
+                        recipes.append(recipe)
+
+        except Exception:
+            logging.exception(EXCEPTION_LOG_MSG)
+
+        return recipes
+
+    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs):
+        """ Gets websites response and yields recipes """
+        soup = BeautifulSoup(web_resp, self.HTML_PARSER)
+
+        try:
+            container = soup.find(class_="sp-grid col3")
+            recipes_containers = container.find_all(class_="entry-title")
+
+            for recipe in recipes_containers:
+                title = recipe.text
+                link = recipe.a["href"]
+
+                yield self.recipe_data_to_dict(title=title, link=link)
+
+        except Exception:
+            logging.exception(EXCEPTION_LOG_MSG)
+
+    def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, web_url:str=None, *args, **kwargs) -> str:
+        """ Return url ready to be sent """
+        url = self.REQUEST_URL
+        url = self.add_params_to_url(ingrs, url, param_name=self.ingr_param, connector=self.conn(ingrs_match))
+        url = self.add_params_to_url(meal_types, url, param_name=self.meal_type_param)
+
+        n_page = 1
+        while True:
+            yield url.format(n_page)
+            n_page += 1
+
+    def conn(self, ingrs_match:str=IngrMatch.FULL) -> str:
+        if ingrs_match == IngrMatch.PART:
+            return ","
+        else:
+            return "+"
+
+    def meal_type_trans(self, meal_type:str=None) -> list or None:
+        trans = {
+            MealType.TO_BREAD: [202],  # 'do-chleba'
+            MealType.DRINK: [201],  # 'smoothies'
+            MealType.DINNER: [93, 94, 200],  # 'obiad', 'kolacja', 'salatki-i-surowki'
+            MealType.LUNCH: [197],  # 'lunch'
+            MealType.BREAKFAST: [92],  # 'sniadanie'
+            MealType.SOUP: [199],  # 'zupy'
+            MealType.DESSERT: [108, 203],  # 'desery', 'ciasta'
+            MealType.SNACKS: None,
         }
         return trans.get(meal_type)

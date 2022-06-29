@@ -4,6 +4,7 @@ scrapers_ = {
     "AlaantkoweBlw": all_scrapers.AlaantkoweblwScraper,
     "Aga ma Smaka": all_scrapers.AgaMaSmakaScraper,
     "Be Fit Be Strong": all_scrapers.BeFitBeStrongScraper,
+    "Ekspresja Smaku": all_scrapers.EkspresjaSmakuScraper,
     "erVegan": all_scrapers.ErVeganScraper,
     "FlyMeToTheSpoon": all_scrapers.FlyMeToTheSpoonScraper,
     "Healthy Living James": all_scrapers.HealthyLivingJamesScraper,

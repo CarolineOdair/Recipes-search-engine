@@ -38,14 +38,6 @@ class BaseScraper:
         """ Returns url ready to be send to the website """
         return web_url
 
-    def add_ingrs_to_url(self, ingrs:list, url:str, connector:str=",", word_conn:str="-", *args, **kwargs) -> str:
-        """ Adds ingredients' parameter to url """
-        return url
-
-    def add_meal_type_to_url(self, meal_types:list, url:str, connector:str=",", *args, **kwargs) -> str:
-        """ Adds meal types' parameter to url """
-        return url
-
     def add_params_to_url(self, params:list, url:str, connector:str=",", param_name:str=None, word_conn:str="-", *args, **kwargs) -> str:
         """ Adds parameters to the url """
         if params is not None:
@@ -90,7 +82,7 @@ class BaseScraper:
             raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
 
     def get_resp_from_req_with_404(self, url:str, *args, **kwargs) -> requests.models.Response:
-        """ Returns websites response (requests.models.Response object) and 404 or raise an exception if request failed """
+        """ Returns websites "ok" and 404 response (requests.models.Response object) or raise an exception if request failed """
         resp = requests.get(url, headers=self.HEADERS)
 
         if resp.ok or resp.status_code == 404:
