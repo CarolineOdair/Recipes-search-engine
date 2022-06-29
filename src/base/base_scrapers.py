@@ -1,20 +1,23 @@
 import html
+import logging
 import requests
 
 from bs4 import BeautifulSoup
 from googletrans import Translator
 
-from src.base.utils import RespType, IngrMatch, REQUEST_FAILED_MSG
-from src.base.utils import do_list_includes_list
+from src.base.utils import IngrMatch, do_list_includes_list, REQUEST_FAILED_MSG
 
 class BaseScraper:
     NAME = None
     DIET = None
     WEB_URL = None
+    REQUEST_URL = None
 
     def __init__(self):
         if self.WEB_URL is None:
             raise Exception("`WEB_URL` is None, must be a string.")
+        if self.REQUEST_URL is None:
+            raise Exception("`REQUEST_URL` is None, must be a string.")
         if self.DIET is None:
             raise NotImplementedError("`DIET` is None, must be MealTypes class property ")
 
@@ -73,22 +76,29 @@ class BaseScraper:
         else:
             return meal_types
 
-    def get_resp_from_req(self, url:str, expected_format=RespType.HTML, *args, **kwargs) -> requests.models.Response:
+    def get_resp_from_req(self, url:str, *args, **kwargs) -> requests.models.Response:
         """ Returns websites response (requests.models.Response object) or raise an exception if request failed """
         resp = requests.get(url, headers=self.HEADERS)
 
         if resp.ok and len(resp.text) != 0:
+            self.add_request_log("info", resp, url=self.WEB_URL)
             return resp
+
         else:
+            self.add_request_log("warning", resp)
             # return REQUEST_FAILED_MSG
             raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
 
     def get_resp_from_req_with_404(self, url:str, *args, **kwargs) -> requests.models.Response:
         """ Returns websites response (requests.models.Response object) and 404 or raise an exception if request failed """
         resp = requests.get(url, headers=self.HEADERS)
+
         if resp.ok or resp.status_code == 404:
+            self.add_request_log("info", resp, url=self.WEB_URL)
             return resp
+
         else:
+            self.add_request_log("warning", resp)
             # return REQUEST_FAILED_MSG
             raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
 
@@ -138,6 +148,15 @@ class BaseScraper:
     def more_link_cleaning(self, link:str=None, *args, **kwargs) -> str:
         """ Modifies title in final data """
         return link
+
+    def add_request_log(self, levelname:str="info", resp:requests.models.Response=None,
+                        url:str=None, *args, **kwargs) -> None:
+        """ Adds logs to logger """
+
+        if levelname == "info":
+            logging.info(f"{resp.status_code}, {resp.reason}, {resp.elapsed.total_seconds()}, {url}")
+        elif levelname == "warning":
+            logging.warning(f"{resp.status_code}, {resp.reason}, {resp.elapsed.total_seconds()}, {resp.url}")
 
 
 
@@ -195,7 +214,7 @@ class WordPressScraper(BaseScraper):
     def get_full_match_recipes(self, ingrs:list, meal_types:list, *args, **kwargs) -> list:
         """ Returns list of recipes with full ingredients match """
         url = self.get_url(ingrs, meal_types)
-        resp = self.get_resp_from_req(url, expected_format=RespType.JSON)
+        resp = self.get_resp_from_req(url)
 
         if resp == REQUEST_FAILED_MSG:
             return []
@@ -239,7 +258,7 @@ class WordPressScraper(BaseScraper):
         recipes = []
         for ingr in ingrs:
             url = self.get_url([ingr], meal_types)
-            resp = self.get_resp_from_req(url, expected_format=RespType.JSON)
+            resp = self.get_resp_from_req(url)
 
             if resp == REQUEST_FAILED_MSG:
                 return []
@@ -255,7 +274,7 @@ class WordPressScraper(BaseScraper):
     def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, web_url:str=None, *args, **kwargs) -> str:
         """ Returns url ready to be sent """
         if web_url is None:
-            web_url = self.WEB_URL
+            web_url = self.REQUEST_URL
         url = web_url
 
         url = self.add_params_to_url(ingrs, url=url, param_name=self.ingr_param,
@@ -344,7 +363,7 @@ class TagsSearchingWordPressScraper(WordPressScraper):
     def get_ingrs_tags(self, ingrs:list, url:str) -> list:
         """ Takes list of strings and url and returns list of their tags """
         url = self.add_params_to_url(params=ingrs, url=url, connector="+", word_conn="-")
-        resp = self.get_resp_from_req(url, expected_format=RespType.JSON)
+        resp = self.get_resp_from_req(url)
         resp = resp.json()
         tags = [(tag["id"]) for tag in resp]
         return tags
@@ -352,7 +371,7 @@ class TagsSearchingWordPressScraper(WordPressScraper):
     def get_recipes_from_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str=IngrMatch.FULL) -> list:
         """ Makes request, filters data and returns list of recipes """
         url = self.get_url(ingrs, meal_types)
-        resp = self.get_resp_from_req(url, expected_format=RespType.JSON)
+        resp = self.get_resp_from_req(url)
         resp = resp.json()
 
         recipes = []

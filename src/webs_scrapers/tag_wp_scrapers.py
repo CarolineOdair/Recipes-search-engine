@@ -1,6 +1,6 @@
 from src.base.base_scrapers import TagsSearchingWordPressScraper
-from src.base.utils import CuisineType, MealType, IngrMatch, REQUEST_FAILED_MSG
-from src.base.utils import do_list_includes_list, list_el_merged_with_plus
+from src.base.utils import CuisineType, MealType, IngrMatch  # classes
+from src.base.utils import do_list_includes_list, list_el_merged_with_plus  # functions
 
 class OhMyVeggiesScraper(TagsSearchingWordPressScraper):
     """
@@ -8,10 +8,11 @@ class OhMyVeggiesScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Oh My Veggies"
     DIET = CuisineType.VEGETARIAN
+    WEB_URL = "https://ohmyveggies.com"
 
-    TAG_URL = "https://ohmyveggies.com/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
-    WEB_URL = "https://ohmyveggies.com/wp-json/wp/v2/posts?per_page=100"
+    REQUEST_URL = WEB_URL + "/wp-json/wp/v2/posts?per_page=100"
 
     def __init__(self):
         super().__init__()
@@ -41,8 +42,9 @@ class FlyMeToTheSpoonScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Fly me to the spoon"
     DIET = CuisineType.REGULAR
+    WEB_URL = "https://flymetothespoon.com"
 
-    TAG_URL = "https://flymetothespoon.com/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
     # categories to be excluded
     EXCLUDE_CATEGORY_ID = 703  # 'mieso'
@@ -50,7 +52,7 @@ class FlyMeToTheSpoonScraper(TagsSearchingWordPressScraper):
     RECIPE_CATEGORY_ID = 259  # 'przepisy'
     # category showing that post is perceived as vegan
     VEGAN_CATEGORY_ID = 651  # 'weganskie'
-    WEB_URL = f"https://flymetothespoon.com/wp-json/wp/v2/posts?per_page=100&categories_exclude={EXCLUDE_CATEGORY_ID}"
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude={EXCLUDE_CATEGORY_ID}"
 
     def __init__(self):
         super().__init__()
@@ -83,14 +85,15 @@ class ZielonySrodekScraper(TagsSearchingWordPressScraper):
     """
     NAME = "zielony środek"
     DIET = CuisineType.REGULAR
+    WEB_URL = "https://zielonysrodek.pl"
 
-    TAG_URL = "https://zielonysrodek.pl/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
     # category showing that post is a recipe
     RECIPE_CATEGORY_ID = 4  # 'przepis'
     # category showing that post is perceived as vegan
     VEGAN_CATEGORY_ID = 85  # 'weganskie'
-    WEB_URL = f"https://zielonysrodek.pl/wp-json/wp/v2/posts?per_page=100"
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100"
 
     def __init__(self):
         super().__init__()
@@ -123,12 +126,13 @@ class OlgaSmileScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Olga Smile"
     DIET = CuisineType.REGULAR
+    WEB_URL = "https://olgasmile.com"
 
-    TAG_URL = "https://olgasmile.com/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
     EXCLUDED_CATEGORIES_ID = [28, 4382]  # 'mieso-wedliny-ryby-owoce-morza', 'jajka'
     VEGAN_RECIPE_CATEGORY_ID = 156  # 'dieta-weganska'
-    WEB_URL = f"https://olgasmile.com/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
               f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_ID)}"
 
     def __init__(self):
@@ -161,12 +165,13 @@ class BeFitBeStrongScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Be Fit Be Strong"
     DIET = CuisineType.REGULAR
+    WEB_URL = "https://befitbestrong.pl"
 
-    TAG_URL = "https://befitbestrong.pl/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
     EXCLUDED_CATEGORIES_ID = [49, 447]  # 'mieso-i-ryby', owoce-morza
     VEGAN_RECIPE_CATEGORY_ID = 2  # 'weganskie'
-    WEB_URL = f"https://befitbestrong.pl/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
               f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_ID)}"
 
     def __init__(self):
@@ -200,10 +205,11 @@ class WarzywizmScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Warzywizm"
     DIET = CuisineType.VEGAN
+    WEB_URL = "https://warzywizm.pl"
 
-    TAG_URL = "https://warzywizm.pl/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
-    WEB_URL = f"https://warzywizm.pl/wp-json/wp/v2/posts?per_page=100"
+    REQUEST_URL = WEB_URL + "/wp-json/wp/v2/posts?per_page=100"
 
     def __init__(self):
         super().__init__()
@@ -227,12 +233,13 @@ class ZenWKuchniScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Zen w kuchni"
     DIET = CuisineType.VEGETARIAN
+    WEB_URL = "https://zenwkuchni.com"
 
-    TAG_URL = "https://zenwkuchni.com/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
     EXCLUDED_CATEGORY_ID = 92  # 'lifestyle'
     MUST_INCLUDE_CATEGORY_ID = 66  # 'weganskie'
-    WEB_URL = f"https://zenwkuchni.com/wp-json/wp/v2/posts?per_page=100&categories_exclude={EXCLUDED_CATEGORY_ID}"
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude={EXCLUDED_CATEGORY_ID}"
 
     def __init__(self):
         super().__init__()
@@ -264,12 +271,13 @@ class WilkuchniaScraper(TagsSearchingWordPressScraper):
     """
     NAME = "WILKUCHNIA"
     DIET = CuisineType.REGULAR
+    WEB_URL = "https://wilkuchnia.pl"
 
-    TAG_URL = "https://wilkuchnia.pl/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
     EXCLUDED_CATEGORIES_IDS = [273, 274]  # 'mieso', 'ryby'
     MUST_INCLUDE_CATEGORY_ID = 299  # 'weganskie'
-    WEB_URL = f"https://wilkuchnia.pl/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
               f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_IDS)}"
 
     def __init__(self):
@@ -302,10 +310,11 @@ class ErVeganScraper(TagsSearchingWordPressScraper):
     """
     NAME = "erVegan"
     DIET = CuisineType.VEGAN
+    WEB_URL = "https://ervegan.com"
 
-    TAG_URL = "https://ervegan.com/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
-    WEB_URL = "https://ervegan.com/wp-json/wp/v2/posts?per_page=100"
+    REQUEST_URL = WEB_URL + "/wp-json/wp/v2/posts?per_page=100"
 
     def __init__(self):
         super().__init__()
@@ -330,10 +339,11 @@ class WegepediaScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Wegepedia"
     DIET = CuisineType.VEGAN
+    WEB_URL = "https://wegepedia.pl"
 
-    TAG_URL = "https://wegepedia.pl/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
-    WEB_URL = "https://wegepedia.pl/wp-json/wp/v2/posts?per_page=100"
+    REQUEST_URL = WEB_URL + "/wp-json/wp/v2/posts?per_page=100"
 
     def __init__(self):
         super().__init__()
@@ -358,10 +368,11 @@ class HealthyOmnomnomScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Healthy Omnomnom"
     DIET = CuisineType.VEGAN
+    WEB_URL = "https://healthyomnomnom.pl"
 
-    TAG_URL = "https://healthyomnomnom.pl/wp-json/wp/v2/recipes-tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/recipes-tags?slug="
 
-    WEB_URL = "https://healthyomnomnom.pl/wp-json/wp/v2/recipe?per_page=100"
+    REQUEST_URL = WEB_URL + "/wp-json/wp/v2/recipe?per_page=100"
 
     def __init__(self):
         super().__init__()
@@ -391,12 +402,13 @@ class HealthyLivingJamesScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Healthy Living James"
     DIET = CuisineType.REGULAR
+    WEB_URL = "https://healthylivingjames.co.uk"
 
-    TAG_URL = "https://healthylivingjames.co.uk/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
     EXCLUDE_CATEGORY_ID = 1392
     VEGAN_CATEGORY_ID = 1393
-    WEB_URL = f"https://healthylivingjames.co.uk/wp-json/wp/v2/posts?per_page=100&categories_exclude={EXCLUDE_CATEGORY_ID}"
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude={EXCLUDE_CATEGORY_ID}"
 
     def __init__(self):
         super().__init__()
@@ -432,10 +444,11 @@ class VegeMiScraper(TagsSearchingWordPressScraper):
     """
     NAME = "VegeMi"
     DIET = CuisineType.VEGAN
+    WEB_URL = "https://vegemi.pl"
 
-    TAG_URL = "https://vegemi.pl/wp-json/wp/v2/tags?slug="
+    TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
-    WEB_URL = "https://vegemi.pl/wp-json/wp/v2/posts?per_page=100"
+    REQUEST_URL = WEB_URL + "/wp-json/wp/v2/posts?per_page=100"
 
     def __init__(self):
         super().__init__()

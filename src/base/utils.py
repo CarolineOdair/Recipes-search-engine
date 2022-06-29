@@ -15,14 +15,11 @@ def list_el_merged_with_plus(list_to_merge:list) -> str:
     return '+'.join([str(category_id) for category_id in list_to_merge])
 
 REQUEST_FAILED_MSG = "Request failed"
+EXCEPTION_LOG_MSG = "Exception has occurred:"
 
 class IngrMatch:
     FULL = "full"
     PART = "partial"
-
-class RespType:
-    JSON = "json"
-    HTML = "html"
 
 class CuisineType:
     VEGAN = "vegan"

@@ -1,6 +1,6 @@
 from src.base.base_scrapers import WordPressScraper
-from src.base.utils import CuisineType, MealType, IngrMatch
-from src.base.utils import do_list_includes_list, list_el_merged_with_plus
+from src.base.utils import CuisineType, MealType, IngrMatch  # classes
+from src.base.utils import do_list_includes_list, list_el_merged_with_plus  # functions
 
 class VegeneratBiegowyScraper(WordPressScraper):
     """
@@ -8,8 +8,9 @@ class VegeneratBiegowyScraper(WordPressScraper):
     """
     NAME = "Vegenerat-biegowy"
     DIET = CuisineType.VEGAN
+    WEB_URL = "https://vegenerat-biegowy.pl"
 
-    WEB_URL = "https://vegenerat-biegowy.pl/wp-json/wp/v2/posts?per_page=100"
+    REQUEST_URL = WEB_URL + "/wp-json/wp/v2/posts?per_page=100"
 
     def __init__(self):
         super().__init__()
@@ -34,8 +35,9 @@ class AgaMaSmakaScraper(WordPressScraper):
     """
     NAME = "Aga ma Smaka"
     DIET = CuisineType.VEGETARIAN
+    WEB_URL = "https://agamasmaka.pl"
 
-    WEB_URL = "https://agamasmaka.pl/wp-json/wp/v2/posts?per_page=100"
+    REQUEST_URL = WEB_URL + "/wp-json/wp/v2/posts?per_page=100"
 
     def __init__(self):
         super().__init__()
@@ -60,9 +62,10 @@ class UpieczonaScraper(WordPressScraper):
     """
     NAME = "Upieczona"
     DIET = CuisineType.VEGETARIAN
+    WEB_URL = "http://www.upieczona.pl"
 
     VEGAN_CATEGORY_ID = 54
-    WEB_URL = f"http://www.upieczona.pl/wp-json/wp/v2/posts?per_page=100&categories={VEGAN_CATEGORY_ID}"
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories={VEGAN_CATEGORY_ID}"
 
     def __init__(self):
         super().__init__()
@@ -77,7 +80,6 @@ class UpieczonaScraper(WordPressScraper):
         return False
 
     def get_meal_types_translated(self, meal_types:list, *args, **kwargs) -> None:
-        # TODO without sense -> if dessert return None, otherwise exclude search
         """ Returns 'None' because contrarily to the most WordPress websites in the project
         this one doesn't have division on meal types """
         return None
@@ -88,10 +90,11 @@ class LittleHungryLadyScraper(WordPressScraper):
     """
     NAME = "Little Hungry Lady"
     DIET = CuisineType.REGULAR
+    WEB_URL = "https://littlehungrylady.pl"
 
     RECIPE_CATEGORY_ID = 911
     VEGAN_CATEGORY_ID = 1150
-    WEB_URL = f"https://littlehungrylady.pl/wp-json/wp/v2/posts?per_page=100&categories={VEGAN_CATEGORY_ID}"
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories={VEGAN_CATEGORY_ID}"
 
     def __init__(self):
         super().__init__()
@@ -124,6 +127,7 @@ class AlaantkoweblwScraper(WordPressScraper):
     """
     NAME = "alaantkoweBLW"
     DIET = CuisineType.REGULAR
+    WEB_URL = "https://alaantkoweblw.pl"
 
     # categories to be excluded
     EXCLUDE_CATEGORIES_IDS = [5, 9, 51]  # 'mieso', 'jajka', 'ryba'
@@ -131,7 +135,7 @@ class AlaantkoweblwScraper(WordPressScraper):
     VEGAN_CATEGORIES_IDS = [33, 130, 32]  # 'bez-jajka', 'bez-miesa', 'bez-nabialu'
     # category showing that post is a recipe
     RECIPE_CAT_ID = 133  # 'przepisy-blw'
-    WEB_URL = f"https://alaantkoweblw.pl/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
               f"{list_el_merged_with_plus(EXCLUDE_CATEGORIES_IDS)}"
 
     def __init__(self):
