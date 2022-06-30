@@ -4,10 +4,12 @@ import logging
 
 from scrapers_dict import scrapers_
 
-class ScraperMenager:
+class ScraperManager:
     def __init__(self):
         self.logger = self.logger_setup()
         self.scrapers = [scraper() for scraper in scrapers_.values()]
+
+        # TODO - meal_types validation in ScraperManager
 
     def get_recipes(self, *args, **kwargs):
         logging.info(f"New search: {kwargs}")
