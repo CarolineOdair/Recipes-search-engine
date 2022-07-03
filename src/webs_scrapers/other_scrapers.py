@@ -53,7 +53,6 @@ class MadeleineOliviaScraper(BaseScraper):
 
             # skips if meal_types are given but recipe categories do not contain none of the wanted types
             if meal_types is None or do_lists_have_common_element(recipe["categories"], meal_types):
-                # print("in")
                 title = recipe["title"]
                 link = self.RECIPE_URL + recipe['urlId']
 
@@ -274,6 +273,7 @@ class WeganonScraper(BaseScraper):
     def get_match_recipes(self, ingrs:list, meal_types:list=None, *arg, **kwargs) -> dict:
         """ Creates and makes requests and yields recipes which are returns in the requests """
         for url in self.get_url(ingrs, meal_types):
+
             resp = self.get_resp_from_req_with_404(url)
             # loops through next pages: 1st, 2nd, 3rd so on and stops when ther's no such page (status_code 404 occurs) -
             if resp.status_code == 404:
@@ -306,8 +306,11 @@ class WeganonScraper(BaseScraper):
 
         n_page = 1
         while True:
+            if n_page > self.MAX_N_PAGES:
+                break
             yield url.format(n_page)
             n_page += 1
+
 
     def meal_type_trans(self, meal_type:str=None) -> list or None:
         trans = {
@@ -404,6 +407,8 @@ class WeganbandaScraper(BaseScraper):
 
         n_page = 1
         while True:
+            if n_page > self.MAX_N_PAGES:
+                break
             yield url.format(n_page)
             n_page += 1
 
@@ -464,6 +469,7 @@ class EkspresjaSmakuScraper(BaseScraper):
 
         try:
             for url in self.get_url(ingrs, meal_types,ingrs_match, web_url):
+
                 resp = self.get_resp_from_req_with_404(url)
                 # loops through pages: 1st, 2nd, 3rd and so on and when there's no more (response with status code 404 occurs), stops
                 if resp.status_code == 404:
@@ -505,6 +511,8 @@ class EkspresjaSmakuScraper(BaseScraper):
 
         n_page = 1
         while True:
+            if n_page > self.MAX_N_PAGES:
+                break
             yield url.format(n_page)
             n_page += 1
 

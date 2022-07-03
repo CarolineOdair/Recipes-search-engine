@@ -13,6 +13,8 @@ class BaseScraper:
     WEB_URL = None
     REQUEST_URL = None
 
+    MAX_N_PAGES = 4  # while looping through pages (/page/n_page/...) MAX_N_PAGES is max n_page value
+
     def __init__(self):
         if self.WEB_URL is None:
             raise Exception("`WEB_URL` is None, must be a string.")
@@ -69,30 +71,36 @@ class BaseScraper:
             return meal_types
 
     def get_resp_from_req(self, url:str, *args, **kwargs) -> requests.models.Response:
-        """ Returns websites response (requests.models.Response object) or raise an exception if request failed """
+        """
+        Returns websites response (requests.models.Response object)
+        or raise an exception if request failed
+        """
         resp = requests.get(url, headers=self.HEADERS)
 
         if resp.ok and len(resp.text) != 0:
-            self.add_request_log("info", resp, url=self.WEB_URL)
+            self.add_request_log("debug", resp, url=self.WEB_URL)
             return resp
 
         else:
             self.add_request_log("warning", resp)
-            # return REQUEST_FAILED_MSG
-            raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
+            return REQUEST_FAILED_MSG
+            # raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
 
     def get_resp_from_req_with_404(self, url:str, *args, **kwargs) -> requests.models.Response:
-        """ Returns websites "ok" and 404 response (requests.models.Response object) or raise an exception if request failed """
+        """
+        Returns websites "ok" and 404 response (requests.models.Response object)
+        or raise an exception if request failed
+        """
         resp = requests.get(url, headers=self.HEADERS)
 
         if resp.ok or resp.status_code == 404:
-            self.add_request_log("info", resp, url=self.WEB_URL)
+            self.add_request_log("debug", resp, url=self.WEB_URL)
             return resp
 
         else:
             self.add_request_log("warning", resp)
-            # return REQUEST_FAILED_MSG
-            raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
+            return REQUEST_FAILED_MSG
+            # raise Exception(f"Request failed, code: {resp.status_code}, url {resp.url}")
 
     def recipe_data_to_dict(self, title:str=None, link:str=None) -> dict:
         """ Returns dict with info about a recipe """
@@ -121,6 +129,26 @@ class BaseScraper:
         return data
 
     def meal_type_trans(self, meal_type:str=None) -> list or None:
+        """
+        Should be a dictionary:
+            key - MealTypes variable
+            value - list of names [str] or ids [int] which represent the category on the website
+
+        Exemplar:
+
+        trans = {
+            MealType.TO_BREAD: [1],
+            MealType.DRINK: [2],
+            MealType.DINNER: [3, 4],
+            MealType.LUNCH: [5],
+            MealType.BREAKFAST: [6],
+            MealType.SOUP: [7],
+            MealType.DESSERT: [8, 9, 10],
+            MealType.SNACKS: None,
+        }
+        return trans.get(meal_type)
+        """
+
         raise NotImplementedError()
 
     def get_cleaned_data(self, data:dict, *args, **kwargs) -> dict:
@@ -145,10 +173,12 @@ class BaseScraper:
                         url:str=None, *args, **kwargs) -> None:
         """ Adds logs to logger """
 
-        if levelname == "info":
-            logging.info(f"{resp.status_code}, {resp.reason}, {resp.elapsed.total_seconds()}, {url}")
+        if levelname == "debug":
+            logging.debug(f"{resp.status_code}, {resp.reason}, {resp.elapsed.total_seconds()}, {url}")
         elif levelname == "warning":
             logging.warning(f"{resp.status_code}, {resp.reason}, {resp.elapsed.total_seconds()}, {resp.url}")
+        else:
+            logging.info(f"{resp}, {url}")
 
 
 
@@ -273,7 +303,6 @@ class WordPressScraper(BaseScraper):
                                      word_conn=self.words_url_connector, connector=self.elements_url_connector)
         url = self.add_params_to_url(meal_types, url=url, param_name=self.meal_type_param,
                                      connector=self.elements_url_connector)
-        print(url)
         return url
 
     def meal_type_trans(self, group_type:str=None) -> list:

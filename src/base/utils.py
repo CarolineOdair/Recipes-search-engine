@@ -21,6 +21,10 @@ class IngrMatch:
     FULL = "full"
     PART = "partial"
 
+    @classmethod
+    def show_variables(self):
+        return [value for name, value in vars(self).items() if name.isupper()]
+
 class CuisineType:
     VEGAN = "vegan"
     VEGETARIAN = "vegetarian"
@@ -36,3 +40,7 @@ class MealType:
     DRINK = "napoje"
     SAUCE = "sosy"
     SNACKS = "przekaski"
+
+    @classmethod
+    def show_variables(self):
+        return [value for name, value in vars(self).items() if name.isupper()]
