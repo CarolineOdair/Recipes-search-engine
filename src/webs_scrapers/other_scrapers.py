@@ -23,9 +23,8 @@ class MadeleineOliviaScraper(BaseScraper):
 
         self.ingr_param = ""
 
-    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
+    def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
         """ Main function, returns recipes which fulfill the conditions """
-        ingrs_copy = ingrs.copy()
         meal_types_copy = self.meal_types_copy(meal_types)
 
         ingrs, meal_types = self.prep_args(ingrs, meal_types)
@@ -45,11 +44,11 @@ class MadeleineOliviaScraper(BaseScraper):
         data = self.clean_data(data)  # clean data
         return data
 
-    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
+    def get_data_from_response(self, web_response:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
         """ Filters data about recipe and returns useful part - title and link """
 
         # loop through recipes
-        for recipe in web_resp["items"]:
+        for recipe in web_response["items"]:
 
             # skips if meal_types are given but recipe categories do not contain none of the wanted types
             if meal_types is None or do_lists_have_common_element(recipe["categories"], meal_types):
@@ -61,15 +60,15 @@ class MadeleineOliviaScraper(BaseScraper):
     def get_full_match_recipes(self, ingrs:list, meal_types:list=None) -> list:
         """ Returns list of recipes - puts all parameters to url in one go """
         url = self.get_url(ingrs)
-        resp = self.get_resp_from_req(url)
+        response = self.get_response_from_request(url)
 
-        if resp == REQUEST_FAILED_MSG:
+        if response == REQUEST_FAILED_MSG:
             return []
 
-        resp = resp.json()
+        response = response.json()
 
         recipes = []
-        for recipe in self.get_data_from_resp(resp, meal_types=meal_types):
+        for recipe in self.get_data_from_response(response, meal_types=meal_types):
             recipes.append(recipe)
 
         return recipes
@@ -79,14 +78,14 @@ class MadeleineOliviaScraper(BaseScraper):
         recipes = []
         for ingr in ingrs:  # loop through ingredients
             url = self.get_url([ingr])
-            resp = self.get_resp_from_req(url)
+            response = self.get_response_from_request(url)
 
-            if resp == REQUEST_FAILED_MSG:
+            if response == REQUEST_FAILED_MSG:
                 return []
 
-            resp = resp.json()
+            response = response.json()
 
-            for recipe in self.get_data_from_resp(resp, meal_types=meal_types):
+            for recipe in self.get_data_from_response(response, meal_types=meal_types):
                 if recipe not in recipes:
                     recipes.append(recipe)
 
@@ -141,9 +140,8 @@ class JadlonomiaScraper(BaseScraper):
         self.ingr_param = "&skladnik="
         self.meal_type_param = "&rodzaj_dania="
 
-    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
+    def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
         """ Main function, returns recipes which fulfill the conditions """
-        ingrs_copy = ingrs.copy()
         meal_types_copy = self.meal_types_copy(meal_types)
 
         # translates meal_types to website friendly version (e.x. 'sniadanie' to 'sniadania')
@@ -153,15 +151,15 @@ class JadlonomiaScraper(BaseScraper):
             return self.data_to_dict([])
 
         url = self.get_url(ingrs, meal_types, ingrs_match)  # constructs url
-        resp = self.get_resp_from_req(url)  # gets html
+        response = self.get_response_from_request(url)  # gets html
 
-        if resp == REQUEST_FAILED_MSG:
+        if response == REQUEST_FAILED_MSG:
             return self.data_to_dict([])
 
-        resp = resp.text
+        response = response.text
 
         recipes = []  # add scrapped recipes to list
-        for recipe in self.get_data_from_resp(resp):
+        for recipe in self.get_data_from_response(response):
             recipes.append(recipe)
 
         data = self.data_to_dict(recipes)  # add data to dict
@@ -175,19 +173,19 @@ class JadlonomiaScraper(BaseScraper):
             web_url = self.REQUEST_URL
         url = web_url
 
-        url = self.add_params_to_url(params=ingrs, url=url, param_name=self.ingr_param, connector=self.conn(ingrs_match))
-        url = self.add_params_to_url(params=meal_type, url=url, param_name=self.meal_type_param, connector=self.conn(IngrMatch.PART))
+        url = self.add_params_to_url(params=ingrs, url=url, param_name=self.ingr_param, delimiter=self.get_delimiter(ingrs_match))
+        url = self.add_params_to_url(params=meal_type, url=url, param_name=self.meal_type_param, delimiter=self.get_delimiter(IngrMatch.PART))
         return url
 
-    def conn(self, match) -> str:
-        """ Based on `match` returns proper connector to connect the values in the url """
+    def get_delimiter(self, match) -> str:
+        """ Based on `match` returns proper delimiter to connect the values in the url """
         if match == IngrMatch.FULL:
             return "+"  # means "and"
         return ","  # means "or"
 
-    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
+    def get_data_from_response(self, web_response:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
         """ Filters response and returns only useful information about recipes - title and link """
-        soup = BeautifulSoup(web_resp, self.HTML_PARSER)
+        soup = BeautifulSoup(web_response, self.HTML_PARSER)
         try:
             recipe_grid = soup.find(class_="clear row")
             articles = recipe_grid.find_all(class_="text absolute")
@@ -229,9 +227,8 @@ class WeganonScraper(BaseScraper):
         self.ingr_param = "&s="
         self.meal_type_param = "&category_name="
 
-    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
+    def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
         """ Main function, returns recipes which fulfill the conditions """
-        ingrs_copy = ingrs.copy()
         meal_types_copy = self.meal_types_copy(meal_types)
 
         meal_types = self.get_meal_types_translated(meal_types)
@@ -251,7 +248,7 @@ class WeganonScraper(BaseScraper):
 
         return data
 
-    def get_full_match_recipes(self, ingrs:list, meal_types:list=None, *args, **kwargs) -> list:
+    def get_full_match_recipes(self, ingrs:list, meal_types:list=None) -> list:
         """ Return list of recipes which ingredients match fully """
         recipes = []
         for recipe in self.get_match_recipes(ingrs, meal_types):
@@ -259,7 +256,7 @@ class WeganonScraper(BaseScraper):
                 recipes.append(recipe)
         return recipes
 
-    def get_partial_match_recipes(self, ingrs:list, meal_types:list=None, *arg, **kwargs) -> list:
+    def get_partial_match_recipes(self, ingrs:list, meal_types:list=None) -> list:
         """ Return list of recipes which ingredients match partially """
         recipes = []
 
@@ -270,21 +267,21 @@ class WeganonScraper(BaseScraper):
 
         return recipes
 
-    def get_match_recipes(self, ingrs:list, meal_types:list=None, *arg, **kwargs) -> dict:
+    def get_match_recipes(self, ingrs:list, meal_types:list=None) -> dict:
         """ Creates and makes requests and yields recipes which are returns in the requests """
         for url in self.get_url(ingrs, meal_types):
 
-            resp = self.get_resp_from_req_with_404(url)
+            response = self.get_response_from_request_with_404(url)
             # loops through next pages: 1st, 2nd, 3rd so on and stops when ther's no such page (status_code 404 occurs) -
-            if resp.status_code == 404:
+            if response.status_code == 404:
                 break
 
-            for recipe in self.get_data_from_resp(resp.text):
+            for recipe in self.get_data_from_response(response.text):
                 yield recipe
 
-    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
+    def get_data_from_response(self, web_response:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
         """ Gets web's response and returns dictionary with recipes' title and link """
-        soup = BeautifulSoup(web_resp, self.HTML_PARSER)
+        soup = BeautifulSoup(web_response, self.HTML_PARSER)
         try:
             container = soup.find(class_="row")
 
@@ -343,9 +340,8 @@ class WeganbandaScraper(BaseScraper):
         self.ingr_param = "&recipe-tag="
         self.meal_type_param = "&course="
 
-    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
+    def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
         """ Main function, returns recipes which fulfill the conditions """
-        ingrs_copy = ingrs.copy()
         meal_types_copy = self.meal_types_copy(meal_types)
 
         meal_types = self.get_meal_types_translated(meal_types)
@@ -359,21 +355,21 @@ class WeganbandaScraper(BaseScraper):
         data = self.clean_data(data)
         return data
 
-    def get_match_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, web_url:str=None, *args, **kwargs) -> list:
+    def get_match_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, web_url:str=None) -> list:
         """ Creates url, makes requests and returns list of recipes """
         recipes = []
 
         try:
             for url in self.get_url(ingrs, meal_types,ingrs_match, web_url):
 
-                resp = self.get_resp_from_req_with_404(url)
+                response = self.get_response_from_request_with_404(url)
                 # loops through pages: 1st, 2nd, 3rd and so on and when there's no more (response with status code 404 occurs), stops
-                if resp.status_code == 404:
+                if response.status_code == 404:
                     break
-                if self.NOT_FOUND_RECIPES_MSG in resp.text:
+                if self.NOT_FOUND_RECIPES_MSG in response.text:
                     break
 
-                for recipe in self.get_data_from_resp(resp.text):
+                for recipe in self.get_data_from_response(response.text):
                     if recipe not in recipes:
                         recipes.append(recipe)
 
@@ -382,9 +378,9 @@ class WeganbandaScraper(BaseScraper):
 
         return recipes
 
-    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
+    def get_data_from_response(self, web_response:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
         """ Gets websites response and yields recipes """
-        soup = BeautifulSoup(web_resp, self.HTML_PARSER)
+        soup = BeautifulSoup(web_response, self.HTML_PARSER)
         try:
             container = soup.find(class_="recipe-grid")
             recipes_containers = container.find_all(class_="item-content")
@@ -402,7 +398,7 @@ class WeganbandaScraper(BaseScraper):
     def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, web_url:str=None, *args, **kwargs) -> str:
         """ Return url ready to be sent """
         url = self.REQUEST_URL
-        url = self.add_params_to_url(ingrs, url, param_name=self.ingr_param, connector=self.conn(ingrs_match))
+        url = self.add_params_to_url(ingrs, url, param_name=self.ingr_param, delimiter=self.get_delimiter(ingrs_match))
         url = self.add_params_to_url(meal_types, url, param_name=self.meal_type_param)
 
         n_page = 1
@@ -412,7 +408,7 @@ class WeganbandaScraper(BaseScraper):
             yield url.format(n_page)
             n_page += 1
 
-    def conn(self, ingrs_match:str=IngrMatch.FULL) -> str:
+    def get_delimiter(self, ingrs_match:str=IngrMatch.FULL) -> str:
         """ Depending on ingrs_match returns character which should connect elements in the url """
         if ingrs_match == IngrMatch.PART:
             return ","
@@ -446,9 +442,8 @@ class EkspresjaSmakuScraper(BaseScraper):
         self.ingr_param = "&tag="
         self.meal_type_param = "&cat="
 
-    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
+    def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
         """ Main function, returns recipes which fulfill the conditions """
-        ingrs_copy = ingrs.copy()
         meal_types_copy = self.meal_types_copy(meal_types)
 
         meal_types = self.get_meal_types_translated(meal_types)
@@ -463,21 +458,21 @@ class EkspresjaSmakuScraper(BaseScraper):
         return data
 
     def get_match_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL,
-                          web_url:str=None, *args, **kwargs) -> list:
+                          web_url:str=None) -> list:
         """ Creates url, makes requests and returns list of recipes """
         recipes = []
 
         try:
             for url in self.get_url(ingrs, meal_types,ingrs_match, web_url):
 
-                resp = self.get_resp_from_req_with_404(url)
+                response = self.get_response_from_request_with_404(url)
                 # loops through pages: 1st, 2nd, 3rd and so on and when there's no more (response with status code 404 occurs), stops
-                if resp.status_code == 404:
+                if response.status_code == 404:
                     break
-                if self.NOT_FOUND_RECIPES_MSG in resp.text:
+                if self.NOT_FOUND_RECIPES_MSG in response.text:
                     break
 
-                for recipe in self.get_data_from_resp(resp.text):
+                for recipe in self.get_data_from_response(response.text):
                     if recipe not in recipes:
                         recipes.append(recipe)
 
@@ -486,9 +481,9 @@ class EkspresjaSmakuScraper(BaseScraper):
 
         return recipes
 
-    def get_data_from_resp(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs):
+    def get_data_from_response(self, web_response:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs):
         """ Gets websites response and yields recipes """
-        soup = BeautifulSoup(web_resp, self.HTML_PARSER)
+        soup = BeautifulSoup(web_response, self.HTML_PARSER)
 
         try:
             container = soup.find(class_="sp-grid col3")
@@ -506,7 +501,7 @@ class EkspresjaSmakuScraper(BaseScraper):
     def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, web_url:str=None, *args, **kwargs) -> str:
         """ Return url ready to be sent """
         url = self.REQUEST_URL
-        url = self.add_params_to_url(ingrs, url, param_name=self.ingr_param, connector=self.conn(ingrs_match))
+        url = self.add_params_to_url(ingrs, url, param_name=self.ingr_param, delimiter=self.get_delimiter(ingrs_match))
         url = self.add_params_to_url(meal_types, url, param_name=self.meal_type_param)
 
         n_page = 1
@@ -516,7 +511,7 @@ class EkspresjaSmakuScraper(BaseScraper):
             yield url.format(n_page)
             n_page += 1
 
-    def conn(self, ingrs_match:str=IngrMatch.FULL) -> str:
+    def get_delimiter(self, ingrs_match:str=IngrMatch.FULL) -> str:
         if ingrs_match == IngrMatch.PART:
             return ","
         else:

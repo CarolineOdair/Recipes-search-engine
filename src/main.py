@@ -6,7 +6,7 @@ from scrapers_manager import ScraperManager
 
 if __name__ == "__main__":
 
-    ingrs = ["płatki owsiane", "maliny"]
+    ingrs = ["pomidor"]
     types = ["sniadanie", "lunch"]
 
     sm = ScraperManager()

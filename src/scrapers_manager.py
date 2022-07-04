@@ -10,7 +10,7 @@ class ScraperManager:
         self.logger_setup()
         self.scrapers = [scraper() for scraper in scrapers_.values()]
 
-        self.manager_resp = {
+        self.manager_response = {
             "error": {"ingrs": "", "meal_types": "", "ingrs_match": "", "other": ""},
             "msg": "",
             "recipes": [],
@@ -18,16 +18,25 @@ class ScraperManager:
         }
 
     def get_recipes(self, *args, **kwargs):
+        # TODO get_recipes - doc
+        try:
+            return self.perform_get_recipes(*args, **kwargs)
+        except Exception:
+            logging.exception("")
+
+    def perform_get_recipes(self, *args, **kwargs):
+        # TODO perform_get_recipes - doc
+
         logging.info(f"New search: {kwargs}")
 
         self.args = args
-        can_continue, self.kwargs = self.params_validation(kwargs)
+        can_continue, self.kwargs, self.manager_response = self.params_validation(kwargs=kwargs, manager_response=self.manager_response)
 
         if not can_continue:
-            logging.warning(f"Program can't continue, invalid params. Returned response {self.manager_resp}")
-            return self.manager_resp
+            logging.warning(f"Program can't continue, invalid params. Returned response {self.manager_response}")
+            return self.manager_response
 
-        # start = datetime.now()
+        start = datetime.now()
         # recipes = [scraper.get_recipes(*args, **kwargs) for scraper in self.scrapers]
         # print(f"Time taken: {datetime.now()-start}")
 
@@ -38,11 +47,12 @@ class ScraperManager:
         taken_time = round((datetime.now()-start).total_seconds(), 2)
         logging.info(f"Time taken: {taken_time}s")
 
-        self.manager_resp["recipes"] = recipes
-        self.manager_resp["number_of_recipes"] = sum([recipe["n_recipes"] for recipe in recipes])
-        return self.manager_resp
+        self.manager_response["recipes"] = recipes
+        self.manager_response["number_of_recipes"] = sum([recipe["n_recipes"] for recipe in recipes])
+        return self.manager_response
 
     def logger_setup(self):
+        # TODO logger_setup - doc
         logging.basicConfig(level=logging.INFO,
                             filename='sample.log',
                             filemode='a',
@@ -67,114 +77,146 @@ class ScraperManager:
 
         return recipes
 
-    def params_validation(self, kwargs:dict) -> (bool, dict):
+    def params_validation(self, kwargs:dict, manager_response:dict) -> (bool, dict, dict):
         """
         Checks if given params are valid
 
         Returns:
             [bool] - False if program has to stop, otherwise True
             kwargs [dict] - checked and eventually slightly changed key word arguments
+            rv [dict] - manager response
         """
+        rv = manager_response
 
         # ingredients
-        are_ingrs, val_ingrs = self.are_ingrs_valid(kwargs.get("ingrs"))
-        are_m_t, val_meal_types = self.are_meal_types_valid(kwargs.get("meal_types"))
-        is_ingrs_match, val_ingr_match = self.is_ingr_match_valid(kwargs.get("ingrs_match"))
+        are_ingrs_valid, validated_ingrs, rv = self.are_ingrs_valid(kwargs.get("ingrs"), rv)
+        are_m_t_valid, validated_meal_types, rv = self.are_meal_types_valid(kwargs.get("meal_types"), rv)
+        is_ingrs_match_valid, validated_ingr_match, rv = self.is_ingr_match_valid(kwargs.get("ingrs_match"), rv)
 
-        are_valid = [are_ingrs, are_m_t, is_ingrs_match]
+
+        are_valid = [are_ingrs_valid, are_m_t_valid, is_ingrs_match_valid]
         if not all(are_valid):
-            return False, kwargs
+            return False, kwargs, rv
 
 
-        kwargs["ingrs"] = val_ingrs
+        kwargs["ingrs"] = validated_ingrs
 
         if kwargs.get("meal_types") is not None:
-            kwargs["meal_types"] = val_meal_types
+            kwargs["meal_types"] = validated_meal_types
 
-        # if kwargs.get("meal_types") is None:
-            # kwargs["ingrs_match"]
         if kwargs.get("ingrs_match") is not None:
-            kwargs["ingrs_match"] = val_ingr_match
+            kwargs["ingrs_match"] = validated_ingr_match
 
-        return True, kwargs
+        return True, kwargs, rv
 
-    def are_ingrs_valid(self, ingrs:list) -> bool:
-        """ Checks if `ingrs` is valid - should be a list of strings """
-        var = "ingrs"
+    def are_ingrs_valid(self, ingrs:list, manager_response:dict) -> (bool, list or None, dict):
+        """
+        Checks if `ingrs` is valid - should be a list of strings
+
+        Returns:
+            can_continue [bool] - True if ingrs is valid, otherwise False
+            rv_ingrs [list] - validated ingrs
+            manager_response [dict] - managers response with added errors or messages
+        """
+        can_continue = False
+        error = ""
+
         MAX_INGRS = 10
 
         if ingrs is None:  # if is None
-            self.manager_resp["error"][var] = f"`{var}` is None, must be a list"
-            return False, None
+            error = f"`ingrs` is None, must be a list"
 
         elif not isinstance(ingrs, list):  # if isn't a list
-            self.manager_resp["error"][var] = f"`{var}` is {type(ingrs)}, must be a list"
-            return False, None
+            error = f"`ingrs` is {type(ingrs)}, must be a list"
 
-        elif isinstance(ingrs, list) and len(ingrs) == 0:  # if is an empty list
-            self.manager_resp["error"][var] = f"`{var}` is an empty list"
-            return False, None
+        elif len(ingrs) == 0:  # if is an empty list
+            error = f"`ingrs` is an empty list"
 
-        elif isinstance(ingrs, list) and len(ingrs) > MAX_INGRS:  # if is a list of to many elements
-            self.manager_resp["error"][var] = f"Too many ingredients: {len(ingrs)}"
-            return False, None
+        elif len(ingrs) > MAX_INGRS:  # if is a list of to many elements
+            error = f"Too many ingredients: {len(ingrs)}"
 
         else:  # checks elements of a list
-            checked_ingrs = []
-            for ingr in ingrs:
-                if isinstance(ingr, str):  # if is a string
-                    checked_ingrs.append(ingr)
-                else:  # if isn't a string
-                    self.manager_resp["error"][var] = f"Not every ingredient is a str, {type(ingr)} has occurred."
-                    return False, None
-            return True, checked_ingrs
+            invalid_ingr = [(ingr, type(ingr)) for ingr in ingrs if not isinstance(ingr, str) or not ingr]
 
-    def are_meal_types_valid(self, meal_types:list) -> (bool, list or None):
-        """ Checks if meal_types is valid - should be variables of MealTypes class """
+            if len(invalid_ingr) > 0:
+                error = f"Not every ingredient is a not empty str, {dict(invalid_ingr)}"
+            else:
+                can_continue = True
 
-        var = "meal_types"
+        if error:
+            manager_response["error"]["ingrs"] = error
+
+        return can_continue, ingrs, manager_response
+
+    def are_meal_types_valid(self, meal_types:list, manager_response:dict) -> (bool, list or None, dict):
+        """
+        Checks if meal_types is valid - should be variables of MealTypes class
+
+        Returns:
+            [bool] - True if meal_types is valid, otherwise False
+            [list or None] - validated meal_types
+            manager_response [dict] - managers response with added errors or messages
+        """
+
         real_meal_types = MealType.show_variables()  # list of MealType variables values
 
         if meal_types is None:  # if is None - user doesn't filter by meal_types
-            return True, None
+            return True, None, manager_response
 
         elif not isinstance(meal_types, list):  # if isn't a list
-            self.manager_resp["error"][var] = f"`{var}` is {type(meal_types)}, must be a list"
-            return False, None
+            error = f"`meal_types` is {type(meal_types)}, must be a list"
+            manager_response["error"]["meal_types"] = error
+            return False, None, manager_response
 
         elif len(meal_types) == 0:  # if is an empty list
-            return True, None
+            return True, None, manager_response
+
 
         # list of given meal_types which are MealTypes class variables
-        validated_types = [m_type for m_type in meal_types if m_type in real_meal_types]
+        validated_types = [meal_type for meal_type in meal_types if meal_type in real_meal_types]
+        invalid_types = [meal_type for meal_type in meal_types if meal_type not in validated_types]
+
+        if len(invalid_types) > 0:
+            warning_msg = f"Invalid meal_type(s): {' '.join(invalid_types)}"
+            manager_response["msg"] = warning_msg
+            logging.warning(warning_msg)
+
 
         if len(meal_types) != 0 and len(validated_types) == 0:
             # if given meal_types wasn't an empty list but None of meal_types was MealType class variable
-            self.manager_resp["error"][var] = f"Invalid `{var}`: {meal_types}"
-            # logging.warning(f"None of meal_types ({meal_types}) is valid meal type")
-            return False, []
+            manager_response["error"]["meal_types"] = f"Invalid `meal_types`: {invalid_types}"
+            return False, validated_types, manager_response
 
-        else:
-            # else - if given meal_types wasn't an empty list and some of them (at least one) was MealType class variables
-            return True, validated_types
+        # else - if given meal_types wasn't an empty list and some of them (at least one) was MealType class variables
+        return True, validated_types, manager_response
 
 
-    def is_ingr_match_valid(self, ingrs_match:str) -> (bool, str or None):
-        """ Checks if `ingrs_match` is valid - should be IngrMatch variable value """
+    def is_ingr_match_valid(self, ingrs_match:str, manager_response:dict) -> (bool, str or None):
+        """ Checks if `ingrs_match` is valid - should be IngrMatch variable value
 
-        var = "ingrs_match"
+        Returns:
+            can_continue [bool] - True if ingrs_match is valid, otherwise False
+            rv_ingrs_match [list or None] - validated meal_types
+            manager_response [dict] - managers response with added errors or messages
+        """
+        can_continue = True
+        error = ""
+
         real_ingrs_match = IngrMatch.show_variables()  # list of IngrMatch variables values
 
         if ingrs_match is None:  # if is None - user doesn't filter by ingrs_match
-            return True, None
+            pass
 
         elif not isinstance(ingrs_match, str):   # if isn't a string
-            self.manager_resp["error"][var] = f"`{var}` is {type(ingrs_match)}, must be a string"
-            return False, None
+            error = f"`ingrs_match` is {type(ingrs_match)}, must be a string"
+            can_continue = False
 
         elif ingrs_match not in real_ingrs_match:  # if isn't an IngrMatch variable value
-            self.manager_resp["error"][var] = f"Invalid `{var}`: '{ingrs_match}'"
-            return False, None
+            error = f"Invalid `ingrs_match`: '{ingrs_match}'"
+            can_continue = False
 
-        else:
-            return True, ingrs_match
+
+        if error:
+            manager_response["error"]["ingrs_match"] = error
+
+        return can_continue, ingrs_match, manager_response
