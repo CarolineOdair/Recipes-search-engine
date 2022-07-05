@@ -1,6 +1,7 @@
-from src.base.base_scrapers import TagsSearchingWordPressScraper
+from src.base.base_scrapers.base_tag_wp_scraper import TagsSearchingWordPressScraper
 from src.base.utils import CuisineType, MealType, IngrMatch  # classes
 from src.base.utils import do_list_includes_list, list_el_merged_with_plus  # functions
+
 
 class OhMyVeggiesScraper(TagsSearchingWordPressScraper):
     """

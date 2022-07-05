@@ -3,7 +3,6 @@ from datetime import datetime
 import logging
 
 from scrapers_dict import scrapers_
-from src.base.utils import MealType, IngrMatch
 from src.base.params_validator import ParamsValidator
 
 class ScraperManager:

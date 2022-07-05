@@ -12,6 +12,7 @@ scrapers_ = {
     "Jadłonomia": all_scrapers.JadlonomiaScraper,
     "Little Hungry Lady": all_scrapers.LittleHungryLadyScraper,
     "Madeleine Olivia": all_scrapers.MadeleineOliviaScraper,
+    "Mina Rome": all_scrapers.MinaRomeScraper,
     "Olga Smile": all_scrapers.OlgaSmileScraper,
     "Oh My Veggies": all_scrapers.OhMyVeggiesScraper,
     "Rozkoszny": all_scrapers.RozkosznyScraper,

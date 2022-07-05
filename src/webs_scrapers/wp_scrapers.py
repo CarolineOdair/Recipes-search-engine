@@ -1,6 +1,7 @@
-from src.base.base_scrapers import WordPressScraper
+from src.base.base_scrapers.base_wp_scraper import WordPressScraper
 from src.base.utils import CuisineType, MealType, IngrMatch  # classes
 from src.base.utils import do_list_includes_list, list_el_merged_with_plus  # functions
+
 
 class VegeneratBiegowyScraper(WordPressScraper):
     """
