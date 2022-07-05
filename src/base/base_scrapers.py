@@ -29,7 +29,10 @@ class BaseScraper:
                         'Accept': 'application/json'}
 
     def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL):
-        # TODO get_recipes - doc
+        """
+        Main function, calls function returning recipes which
+        fulfill the conditions or an empty website's dictionary
+        """
         try:
             return self.perform_get_recipes(ingrs, meal_types, ingrs_match)
         except Exception:
@@ -37,7 +40,7 @@ class BaseScraper:
             return self.data_to_dict([])
 
     def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
-        """ Main function, returns recipes which fulfill the conditions """
+        """ Main function to be programmed, returns recipes which fulfill the conditions """
         raise NotImplementedError()
 
     def get_data_from_response(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs):

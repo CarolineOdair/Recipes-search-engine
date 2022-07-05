@@ -18,14 +18,14 @@ class ScraperManager:
         }
 
     def get_recipes(self, *args, **kwargs):
-        # TODO get_recipes - doc
+        """ Returns get_recipes function, running the program or raises an exception """
         try:
             return self.perform_get_recipes(*args, **kwargs)
         except Exception:
             logging.exception("")
 
     def perform_get_recipes(self, *args, **kwargs):
-        # TODO perform_get_recipes - doc
+        """ Main function managing scrapers and returning info about found recipes """
 
         logging.info(f"New search: {kwargs}")
 
@@ -52,7 +52,7 @@ class ScraperManager:
         return self.manager_response
 
     def logger_setup(self):
-        # TODO logger_setup - doc
+        """ Config of the project's logger """
         logging.basicConfig(level=logging.INFO,
                             filename='sample.log',
                             filemode='a',

@@ -6,8 +6,8 @@ from scrapers_manager import ScraperManager
 
 if __name__ == "__main__":
 
-    ingrs = ["pomidor"]
-    types = ["sniadanie", "lunch"]
+    ingrs = ["mak", "placki"]
+    types = ["sniadanie"]
 
     sm = ScraperManager()
     # recipes = sm.get_recipes(ingrs=ingrs, meal_types=types, ingrs_match="partial")
