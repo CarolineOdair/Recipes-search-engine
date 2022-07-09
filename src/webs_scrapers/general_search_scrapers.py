@@ -1,6 +1,6 @@
-from src.base.base_scrapers.base_general_search_scraper import GeneralSearchScraper
-from src.base.utils import CuisineType, MealType  # classes
-from src.base.utils import do_lists_have_common_element  # functions
+from src.base.base_scrapers import GeneralSearchScraper
+from src.base import CuisineType, MealType  # classes
+from src.base import do_lists_have_common_element  # methods
 
 
 class MadeleineOliviaScraper(GeneralSearchScraper):
@@ -9,7 +9,7 @@ class MadeleineOliviaScraper(GeneralSearchScraper):
     """
     NAME = "Madeleine Olivia"
     DIET = CuisineType.VEGAN
-    WEB_URL = "https://madeleineolivia.co.uk"
+    WEB_URL = "https://www.madeleineolivia.co.uk"
     ENG_WEB = True
 
     REQUEST_URL = WEB_URL + "/api/search/GeneralSearch?q="
@@ -51,7 +51,7 @@ class MinaRomeScraper(GeneralSearchScraper):
     """
     NAME = "Mina Rome"
     DIET = CuisineType.VEGAN
-    WEB_URL = "https://mina-rome.com"
+    WEB_URL = "https://www.mina-rome.com"
     ENG_WEB = True
 
     REQUEST_URL = WEB_URL + "/api/search/GeneralSearch?q="

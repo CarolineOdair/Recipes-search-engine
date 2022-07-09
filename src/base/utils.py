@@ -1,6 +1,6 @@
 def do_lists_have_common_element(list_1:list, list_2:list) -> bool:
     """ Checks if two lists have at least one common element """
-    if (set(list_1) & set(list_2)):
+    if set(list_1) & set(list_2):
         return True
     else:
         return False
@@ -14,6 +14,7 @@ def list_el_merged_with_plus(list_to_merge:list) -> str:
     """ Merges list of ints/floats/strings with '+' """
     return '+'.join([str(category_id) for category_id in list_to_merge])
 
+
 REQUEST_FAILED_MSG = "Request failed"
 EXCEPTION_LOG_MSG = "Exception has occurred:"
 
@@ -22,8 +23,8 @@ class IngrMatch:
     PART = "partial"
 
     @classmethod
-    def show_variables(self):
-        return [value for name, value in vars(self).items() if name.isupper()]
+    def show_variables(cls):
+        return [value for name, value in vars(cls).items() if name.isupper()]
 
 class CuisineType:
     VEGAN = "vegan"
@@ -42,5 +43,5 @@ class MealType:
     SNACKS = "przekaski"
 
     @classmethod
-    def show_variables(self):
-        return [value for name, value in vars(self).items() if name.isupper()]
+    def show_variables(cls):
+        return [value for name, value in vars(cls).items() if name.isupper()]

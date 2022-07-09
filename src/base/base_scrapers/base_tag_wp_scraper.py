@@ -1,5 +1,5 @@
-from src.base.base_scrapers.base_wp_scraper import WordPressScraper
-from src.base.utils import IngrMatch, do_list_includes_list
+from src.base.base_scrapers import WordPressScraper
+from src.base import IngrMatch, do_list_includes_list
 
 
 class TagsSearchingWordPressScraper(WordPressScraper):
@@ -34,7 +34,6 @@ class TagsSearchingWordPressScraper(WordPressScraper):
 
         data = self.data_to_dict(recipes)  # add data to dict
         data = self.clean_data(data)  # universal cleaning
-        data = self.get_cleaned_data(data)  # cleaning specified for website
         return data
 
     def prep_args(self, ingrs:list=None, meal_types:list=None) -> (list, list):
@@ -67,7 +66,7 @@ class TagsSearchingWordPressScraper(WordPressScraper):
 
         return False
 
-    def prep_data_to_get_tags(self, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> (list, list):
+    def prep_data_to_get_tags(self, ingrs:list=None, meal_types:list=None) -> (list, list):
         """ Changes data before getting ingredients tags """
         return ingrs, meal_types
 
@@ -98,8 +97,7 @@ class TagsSearchingWordPressScraper(WordPressScraper):
 
         return recipes
 
-    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str=IngrMatch.FULL,
-                           *args, **kwargs) -> bool:
+    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Checks if current recipe should be excluded - it should if `ingrs_match` is 'full'
         but recipe do not have all wanted ingredients in its ingredients. """
         if self.web_recipe_exclusion_con(recipe, ingrs, meal_types, ingrs_match):
@@ -115,6 +113,6 @@ class TagsSearchingWordPressScraper(WordPressScraper):
             raise Exception(f"`ingrs_match` must be '{IngrMatch.FULL}' or '{IngrMatch.PART}', not '{ingrs_match}'")
 
     def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None,
-                                 ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+                                 ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Checks if current recipe should be excluded - returns True if it should, otherwise returns False """
         return False

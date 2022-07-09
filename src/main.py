@@ -1,7 +1,5 @@
 from pprint import pprint
 
-from src.webs_scrapers.all_scrapers import *
-
 from scrapers_manager import ScraperManager
 
 

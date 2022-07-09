@@ -4,7 +4,7 @@ import requests
 
 from googletrans import Translator
 
-from src.base.utils import IngrMatch, REQUEST_FAILED_MSG
+from src.base import IngrMatch, REQUEST_FAILED_MSG
 
 
 class BaseScraper:
@@ -14,6 +14,7 @@ class BaseScraper:
     REQUEST_URL = None
 
     MAX_N_PAGES = 4  # while looping through pages (/page/n_page/...) MAX_N_PAGES is max n_page value
+    TIMEOUT = 10
 
     def __init__(self):
         if self.WEB_URL is None:
@@ -28,7 +29,10 @@ class BaseScraper:
                         'Accept-Language': 'pl,en-US;q=0.7,en;q=0.3',
                         'Accept': 'application/json'}
 
-    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL):
+    def __str__(self):
+        return f"{self.NAME}"
+
+    def get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL) -> dict:
         """
         Main function, calls function returning recipes which
         fulfill the conditions or an empty website's dictionary
@@ -36,7 +40,7 @@ class BaseScraper:
         try:
             return self.perform_get_recipes(ingrs, meal_types, ingrs_match)
         except Exception:
-            logging.error(f"Problem with {self.NAME}")
+            logging.error(f"Problem with: {self}")
             return self.data_to_dict([])
 
     def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
@@ -51,7 +55,7 @@ class BaseScraper:
         """ Returns url ready to be send to the website """
         return web_url
 
-    def add_params_to_url(self, params:list, url:str, delimiter:str= ",", param_name:str=None, phrase_connector:str= "-", *args, **kwargs) -> str:
+    def add_params_to_url(self, params:list, url:str, delimiter:str= ",", param_name:str=None, phrase_connector:str= "-") -> str:
         """ Adds parameters to the url """
         if params is not None:
             if param_name:
@@ -67,10 +71,10 @@ class BaseScraper:
         """ Returns meal_types copy or None if meal_types is None """
         if isinstance(meal_types, list):
             return meal_types.copy()
-        else:
-            return None
+        return None
 
     def get_meal_types_translated(self, meal_types:list, *args, **kwargs) -> list:
+        """ Changes universally written meal_types to the website's specific form """
         if meal_types:
             rv = []
             for group_type in meal_types:
@@ -81,12 +85,12 @@ class BaseScraper:
         else:
             return meal_types
 
-    def get_response_from_request(self, url:str, *args, **kwargs) -> requests.models.Response:
+    def get_response_from_request(self, url:str) -> requests.models.Response:
         """
         Returns websites response (requests.models.Response object)
         or raise an exception if request failed
         """
-        response = requests.get(url, headers=self.HEADERS)
+        response = requests.get(url, headers=self.HEADERS, timeout=self.TIMEOUT)
 
         if response.ok and len(response.text) != 0:
             self.add_request_log("debug", response, url=self.WEB_URL)
@@ -97,12 +101,12 @@ class BaseScraper:
             return REQUEST_FAILED_MSG
             # raise Exception(f"Request failed, code: {response.status_code}, url {response.url}")
 
-    def get_response_from_request_with_404(self, url:str, *args, **kwargs) -> requests.models.Response:
+    def get_response_from_request_with_404(self, url:str) -> requests.models.Response:
         """
         Returns websites "ok" and 404 response (requests.models.Response object)
         or raise an exception if request failed
         """
-        response = requests.get(url, headers=self.HEADERS)
+        response = requests.get(url, headers=self.HEADERS, timeout=self.TIMEOUT)
 
         if response.ok or response.status_code == 404:
             self.add_request_log("debug", response, url=self.WEB_URL)
@@ -113,7 +117,7 @@ class BaseScraper:
             return REQUEST_FAILED_MSG
             # raise Exception(f"Request failed, code: {response.status_code}, url {response.url}")
 
-    def recipe_data_to_dict(self, title:str=None, link:str=None) -> dict:
+    def recipe_data_to_dict(self, title:str, link:str) -> dict:
         """ Returns dict with info about a recipe """
         return {"title": title, "link": link}
 
@@ -162,31 +166,27 @@ class BaseScraper:
 
         raise NotImplementedError()
 
-    def get_cleaned_data(self, data:dict, *args, **kwargs) -> dict:
-        """ Cleans data from unwanted characters """
-        return data
-
     def pl_en_translate(self, words:list) -> list:
         """ Translates list of ingredients from polish to english """
         translator = Translator()
-        translation = [translator.translate(word).text.lower() for word in words]
+        translation = [translator.translate(word, src="pl", dest="en").text.lower() for word in words]
         return translation
 
-    def more_title_cleaning(self, title:str=None, *args, **kwargs) -> str:
+    def more_title_cleaning(self, title:str=None) -> str:
         """ Modifies title in final data """
         return title
 
-    def more_link_cleaning(self, link:str=None, *args, **kwargs) -> str:
+    def more_link_cleaning(self, link:str=None) -> str:
         """ Modifies title in final data """
         return link
 
     def add_request_log(self, levelname:str="info", response:requests.models.Response=None,
-                        url:str=None, *args, **kwargs) -> None:
+                        url:str=None) -> None:
         """ Adds logs to logger """
 
         if levelname == "debug":
-            logging.debug(f"{response.status_code}, {response.reason}, {response.elapsed.total_seconds()}, {url}")
+            logging.debug(f"{response.status_code}, {response.elapsed.total_seconds()}, {url}")
         elif levelname == "warning":
-            logging.warning(f"{response.status_code}, {response.reason}, {response.elapsed.total_seconds()}, {response.url}")
+            logging.warning(f"{response.status_code}, {response.elapsed.total_seconds()}, {response.url}")
         else:
             logging.info(f"{response}, {url}")

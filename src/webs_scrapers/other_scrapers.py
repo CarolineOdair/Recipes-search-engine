@@ -2,9 +2,9 @@ import logging
 
 from bs4 import BeautifulSoup
 
-from src.base.base_scrapers.base_scraper import BaseScraper
-from src.base.utils import CuisineType, MealType, IngrMatch  # classes
-from src.base.utils import REQUEST_FAILED_MSG, EXCEPTION_LOG_MSG  # strings
+from src.base.base_scrapers import BaseScraper
+from src.base import CuisineType, MealType, IngrMatch  # classes
+from src.base import REQUEST_FAILED_MSG, EXCEPTION_LOG_MSG  # strings
 
 
 class JadlonomiaScraper(BaseScraper):
@@ -62,7 +62,7 @@ class JadlonomiaScraper(BaseScraper):
         url = self.add_params_to_url(params=meal_type, url=url, param_name=self.meal_type_param, delimiter=self.get_delimiter(IngrMatch.PART))
         return url
 
-    def get_delimiter(self, match) -> str:
+    def get_delimiter(self, match:str) -> str:
         """ Based on `match` returns proper delimiter to connect the values in the url """
         if match == IngrMatch.FULL:
             return "+"  # means "and"
@@ -193,7 +193,6 @@ class WeganonScraper(BaseScraper):
             yield url.format(n_page)
             n_page += 1
 
-
     def meal_type_trans(self, meal_type:str=None) -> list or None:
         trans = {
             MealType.DESSERT: ["na-slodko"],
@@ -207,11 +206,11 @@ class WeganonScraper(BaseScraper):
         }
         return trans.get(meal_type)
 
-class WeganbandaScraper(BaseScraper):
+class VeganbandaScraper(BaseScraper):
     """
     Searches for recipes with given ingredients and for specified (or not) meal on 'veganbanda.pl'.
     """
-    NAME = "weganbanda"
+    NAME = "veganbanda"
     DIET = CuisineType.VEGAN
     WEB_URL = "https://veganbanda.pl"
 
@@ -313,6 +312,9 @@ class WeganbandaScraper(BaseScraper):
         return trans.get(meal_type)
 
 class EkspresjaSmakuScraper(BaseScraper):
+    """
+    Searches for recipes with given ingredients and for specified (or not) meal on 'ekspresjasmaku.com'.
+    """
     NAME = "Ekspresja Smaku"
     DIET = CuisineType.VEGAN
     WEB_URL = "https://ekspresjasmaku.com"
@@ -366,7 +368,7 @@ class EkspresjaSmakuScraper(BaseScraper):
 
         return recipes
 
-    def get_data_from_response(self, web_response:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs):
+    def get_data_from_response(self, web_response:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
         """ Gets websites response and yields recipes """
         soup = BeautifulSoup(web_response, self.HTML_PARSER)
 
@@ -397,10 +399,10 @@ class EkspresjaSmakuScraper(BaseScraper):
             n_page += 1
 
     def get_delimiter(self, ingrs_match:str=IngrMatch.FULL) -> str:
+        """ Depending on ingrs_match returns character which should connect elements in the url """
         if ingrs_match == IngrMatch.PART:
             return ","
-        else:
-            return "+"
+        return "+"
 
     def meal_type_trans(self, meal_type:str=None) -> list or None:
         trans = {
@@ -414,3 +416,276 @@ class EkspresjaSmakuScraper(BaseScraper):
             MealType.SNACKS: None,
         }
         return trans.get(meal_type)
+
+class WegannerdScraper(BaseScraper):
+    """
+    Searches for recipes with given ingredients on 'wegannerd.com'.
+    """
+    NAME = "wegan nerd"
+    DIET = CuisineType.VEGAN
+    WEB_URL = "https://www.wegannerd.com"
+
+    NOT_FOUND_RECIPES_MSG = "Brak postów spełniających kryteria wyszukiwania:"
+
+    REQUEST_URL = WEB_URL + "/search?max-results=40"
+
+    def __init__(self):
+        super().__init__()
+
+        self.ingr_param = "&q="
+
+    def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
+        """ Main function, returns recipes which fulfill the conditions """
+        if meal_types is not None:
+            return self.data_to_dict([])
+
+        if ingrs_match == IngrMatch.FULL:
+            recipes = self.get_full_match_recipes(ingrs)
+        elif ingrs_match == IngrMatch.PART:
+            recipes = self.get_partial_match_recipes(ingrs)
+        else:
+            return self.data_to_dict([])
+
+        data = self.data_to_dict(recipes)
+        data = self.clean_data(data)
+        return data
+
+    def get_partial_match_recipes(self, ingrs:list) -> list:
+        """ Return list of recipes which ingredients match partially """
+        recipes = []
+
+        for ingr in ingrs:
+            for recipe in self.get_match_recipes([ingr]):
+                if recipe not in recipes:
+                    recipes.append(recipe)
+
+        return recipes
+
+    def get_full_match_recipes(self, ingrs:list) -> list:
+        """ Return list of recipes which ingredients match fully """
+        recipes = []
+        for recipe in self.get_match_recipes(ingrs):
+            if recipe not in recipes:
+                recipes.append(recipe)
+
+        return recipes
+
+    def get_match_recipes(self, ingrs:list) -> dict:
+        """ Creates url, makes request and yields recipes """
+        url = self.get_url(ingrs)
+        response = self.get_response_from_request(url)
+
+        for recipe in self.get_data_from_response(response.text):
+            yield recipe
+
+    def get_data_from_response(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
+        """ Gets websites response, makes html scraping and yields recipes """
+        soup = BeautifulSoup(web_resp, self.HTML_PARSER)
+        try:
+            container = soup.find(id="Blog1")
+            recipe_containers = container.find_all(class_="post-title entry-title")
+
+            for recipe in recipe_containers:
+                title = recipe.text.strip()
+                link = recipe.a["href"]
+
+                yield self.recipe_data_to_dict(title=title, link=link)
+
+        except Exception:
+            logging.exception(EXCEPTION_LOG_MSG)
+
+    def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, web_url:str=None, *args, **kwargs) -> str:
+        """ Return url ready to be sent """
+        if web_url is None:
+            web_url = self.REQUEST_URL
+
+        web_url = self.add_params_to_url(ingrs, param_name=self.ingr_param, delimiter="+", url=web_url)
+
+        return web_url
+
+class TrueTasteHuntersScraper(BaseScraper):
+    """
+    Searches for recipes with given ingredients on 'truetastehunters.com'.
+    """
+    NAME = "true taste hunters"
+    DIET = CuisineType.VEGAN
+    WEB_URL = "https://www.truetastehunters.com"
+
+    NOT_FOUND_RECIPES_MSG = "Nie znaleziono wyników"
+
+    REQUEST_URL = WEB_URL + "/search?max-results=50"
+
+    def __init__(self):
+        super().__init__()
+
+        self.ingr_param = "&q="
+
+    def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
+        """ Main function, returns recipes which fulfill the conditions """
+        if meal_types is not None:
+            return self.data_to_dict([])
+
+        if ingrs_match == IngrMatch.FULL:
+            recipes = self.get_full_match_recipes(ingrs)
+        elif ingrs_match == IngrMatch.PART:
+            recipes = self.get_partial_match_recipes(ingrs)
+        else:
+            return self.data_to_dict([])
+
+        data = self.data_to_dict(recipes)
+        data = self.clean_data(data)
+        return data
+
+    def get_partial_match_recipes(self, ingrs:list) -> list:
+        """ Return list of recipes which ingredients match partially """
+        recipes = []
+
+        for ingr in ingrs:
+            for recipe in self.get_match_recipes([ingr]):
+                if recipe not in recipes:
+                    recipes.append(recipe)
+
+        return recipes
+
+    def get_full_match_recipes(self, ingrs:list) -> list:
+        """ Return list of recipes which ingredients match fully """
+        recipes = []
+        for recipe in self.get_match_recipes(ingrs):
+            if recipe not in recipes:
+                recipes.append(recipe)
+
+        return recipes
+
+    def get_match_recipes(self, ingrs:list) -> dict:
+        """ Creates url, makes request and yields recipes """
+        url = self.get_url(ingrs)
+        response = self.get_response_from_request(url)
+
+        for recipe in self.get_data_from_response(response.text):
+            if not self.do_exclude_recipe(recipe):
+                yield recipe
+
+    def get_data_from_response(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
+        """ Gets websites response, makes html scraping and yields recipes """
+        soup = BeautifulSoup(web_resp, self.HTML_PARSER)
+        try:
+            container = soup.find(id="Blog1")
+            recipe_containers = container.find_all(class_="post-title entry-title")
+
+            for recipe in recipe_containers:
+                title = recipe.text.strip()
+                link = recipe.a["href"]
+
+                yield self.recipe_data_to_dict(title=title, link=link)
+
+        except Exception:
+            logging.exception(EXCEPTION_LOG_MSG)
+
+    def do_exclude_recipe(self, recipe_dict:dict) -> bool:
+        """ Returns True if recipe should be excluded, otherwise False """
+        EXCLUDE_PHRASES = ["Stary Browar", "Starego Browaru", "Starym Browarze", "Starym Browarem"]
+        # there are some articles, not recipes, so not what is needed. The articles have in name different forms of
+        # 'Stary Browar', restaurant, I guess. So every recipe having in title 'Stary Browar' or its form will be excluded
+
+        for phrase in EXCLUDE_PHRASES:
+            if phrase in recipe_dict["title"]:
+                return True
+
+        return False
+
+    def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, web_url:str=None, *args, **kwargs) -> str:
+        """ Return url ready to be sent """
+        if web_url is None:
+            web_url = self.REQUEST_URL
+
+        web_url = self.add_params_to_url(ingrs, param_name=self.ingr_param, delimiter="+", url=web_url)
+
+        return web_url
+
+class WegankaScraper(BaseScraper):
+    """
+    Searches for recipes with given ingredients on 'weganka.com'.
+    """
+    NAME = "wegAnka"
+    DIET = CuisineType.VEGAN
+    WEB_URL = "https://www.weganka.com"
+
+    NOT_FOUND_RECIPES_MSG = "Nie znaleziono wyników"
+
+    REQUEST_URL = WEB_URL + "/search?max-results=50"
+
+    def __init__(self):
+        super().__init__()
+
+        self.ingr_param = "&q="
+
+    def perform_get_recipes(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> dict:
+        """ Main function, returns recipes which fulfill the conditions """
+
+        if meal_types is not None:
+            return self.data_to_dict([])
+
+        if ingrs_match == IngrMatch.FULL:
+            recipes = self.get_full_match_recipes(ingrs)
+        elif ingrs_match == IngrMatch.PART:
+            recipes = self.get_partial_match_recipes(ingrs)
+        else:
+            return self.data_to_dict([])
+
+        data = self.data_to_dict(recipes)
+        data = self.clean_data(data)
+
+        return data
+
+    def get_full_match_recipes(self, ingrs:list) -> list:
+        """ Return list of recipes which ingredients match fully """
+        recipes = []
+
+        for recipe in self.get_match_recipes(ingrs):
+            if recipe not in recipes:
+                recipes.append(recipe)
+
+        return recipes
+
+    def get_partial_match_recipes(self, ingrs:list) -> list:
+        """ Return list of recipes which ingredients match partially """
+        recipes = []
+
+        for ingr in ingrs:
+            for recipe in self.get_match_recipes([ingr]):
+                if recipe not in recipes:
+                    recipes.append(recipe)
+
+        return recipes
+
+    def get_match_recipes(self, ingrs:list) -> dict:
+        """ Creates url, makes request and yields recipes """
+        url = self.get_url(ingrs)
+        response = self.get_response_from_request(url)
+
+        for recipe in self.get_data_from_response(response.text):
+            yield recipe
+
+    def get_data_from_response(self, web_resp:str=None, ingrs:list=None, meal_types:list=None, *args, **kwargs) -> dict:
+        """ Gets websites response, makes html scraping and yields recipes """
+        soup = BeautifulSoup(web_resp, self.HTML_PARSER)
+        try:
+            container = soup.find(class_="blog-posts hfeed container")
+
+            containers = container.find_all(class_="post-title entry-title")
+            for recipe in containers:
+                title = recipe.text.strip()
+                link = recipe.a["href"]
+                yield self.recipe_data_to_dict(title=title, link=link)
+
+        except Exception:
+            logging.exception(EXCEPTION_LOG_MSG)
+
+    def get_url(self, ingrs:list, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, web_url:str=None, *args, **kwargs) -> str:
+        """ Return url ready to be sent """
+        if web_url is None:
+            web_url = self.REQUEST_URL
+
+        web_url = self.add_params_to_url(params=ingrs, param_name=self.ingr_param, delimiter="+", url=web_url)
+
+        return web_url

@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 
-from src.base.base_scrapers.base_scraper import BaseScraper
-from src.base.utils import IngrMatch, REQUEST_FAILED_MSG
+from src.base.base_scrapers import BaseScraper
+from src.base import IngrMatch, REQUEST_FAILED_MSG
 
 
 class WordPressScraper(BaseScraper):
@@ -36,10 +36,9 @@ class WordPressScraper(BaseScraper):
 
         data = self.data_to_dict(recipes)  # add data to dict
         data = self.clean_data(data)  # universal cleaning
-        data = self.get_cleaned_data(data)  # cleaning specified for website
         return data
 
-    def exclude_by_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+    def exclude_by_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Checks if parameters fulfill the conditions which will exclude entire request. """
         return False
 
@@ -88,10 +87,10 @@ class WordPressScraper(BaseScraper):
         if add:
             title = recipe["title"]["rendered"]
             link = recipe["link"]
-            return self.recipe_data_to_dict(title, link)
+            return self.recipe_data_to_dict(title=title, link=link)
         return None
 
-    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Checks if condition which exclude the recipe is fulfilled.
         Returns `True` if it is, otherwise returns `False` """
         return False
@@ -129,4 +128,3 @@ class WordPressScraper(BaseScraper):
     def meal_type_trans(self, group_type:str=None) -> list:
         """ Converts universally written meal_types to website's specific format """
         raise NotImplementedError()
-

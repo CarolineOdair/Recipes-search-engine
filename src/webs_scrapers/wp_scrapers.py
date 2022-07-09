@@ -1,6 +1,6 @@
-from src.base.base_scrapers.base_wp_scraper import WordPressScraper
-from src.base.utils import CuisineType, MealType, IngrMatch  # classes
-from src.base.utils import do_list_includes_list, list_el_merged_with_plus  # functions
+from src.base.base_scrapers import WordPressScraper
+from src.base import CuisineType, MealType, IngrMatch  # classes
+from src.base import do_list_includes_list, list_el_merged_with_plus  # methods
 
 
 class VegeneratBiegowyScraper(WordPressScraper):
@@ -36,7 +36,7 @@ class AgaMaSmakaScraper(WordPressScraper):
     """
     NAME = "Aga ma Smaka"
     DIET = CuisineType.VEGETARIAN
-    WEB_URL = "https://agamasmaka.pl"
+    WEB_URL = "https://www.agamasmaka.pl"
 
     REQUEST_URL = WEB_URL + "/wp-json/wp/v2/posts?per_page=100"
 
@@ -71,7 +71,7 @@ class UpieczonaScraper(WordPressScraper):
     def __init__(self):
         super().__init__()
 
-    def exclude_by_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+    def exclude_by_params(self, ingrs:list=None, meal_types:list=None, ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Checks if the request should be made - if `meal_types` is given but doesn't contain MealType.DESSERT,
         request shouldn't be made """
         if meal_types is None:
@@ -102,7 +102,7 @@ class LittleHungryLadyScraper(WordPressScraper):
 
         self.meal_type_param = "&tag="
 
-    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Excludes the post if there's no 'recipe' category """
         if self.RECIPE_CATEGORY_ID not in recipe["categories"]:
             return True
@@ -137,12 +137,12 @@ class AlaantkoweblwScraper(WordPressScraper):
     # category showing that post is a recipe
     RECIPE_CAT_ID = 133  # 'przepisy-blw'
     REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
-              f"{list_el_merged_with_plus(EXCLUDE_CATEGORIES_IDS)}"
+                            f"{list_el_merged_with_plus(EXCLUDE_CATEGORIES_IDS)}"
 
     def __init__(self):
         super().__init__()
 
-    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+    def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Excludes the post if there's no 'recipe' and 'vegan' category """
         if self.RECIPE_CAT_ID not in recipe["categories"]:
             return True

@@ -1,6 +1,6 @@
-from src.base.base_scrapers.base_tag_wp_scraper import TagsSearchingWordPressScraper
-from src.base.utils import CuisineType, MealType, IngrMatch  # classes
-from src.base.utils import do_list_includes_list, list_el_merged_with_plus  # functions
+from src.base.base_scrapers import TagsSearchingWordPressScraper
+from src.base import CuisineType, MealType, IngrMatch  # classes
+from src.base import do_list_includes_list, list_el_merged_with_plus  # methods
 
 
 class OhMyVeggiesScraper(TagsSearchingWordPressScraper):
@@ -59,7 +59,7 @@ class FlyMeToTheSpoonScraper(TagsSearchingWordPressScraper):
         super().__init__()
 
     def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None,
-                                 ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+                                 ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Excludes the post if there's no 'recipe' and 'vegan' category """
         must_include_categories = [self.RECIPE_CATEGORY_ID, self.VEGAN_CATEGORY_ID]
         if not do_list_includes_list(recipe["categories"], must_include_categories):
@@ -99,7 +99,7 @@ class ZielonySrodekScraper(TagsSearchingWordPressScraper):
         super().__init__()
 
     def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None,
-                                 ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+                                 ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Excludes the post if there's no 'recipe' and 'vegan' category """
 
         must_include_categories = [self.RECIPE_CATEGORY_ID, self.VEGAN_CATEGORY_ID]
@@ -133,13 +133,13 @@ class OlgaSmileScraper(TagsSearchingWordPressScraper):
     EXCLUDED_CATEGORIES_ID = [28, 4382]  # 'mieso-wedliny-ryby-owoce-morza', 'jajka'
     VEGAN_RECIPE_CATEGORY_ID = 156  # 'dieta-weganska'
     REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
-              f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_ID)}"
+                            f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_ID)}"
 
     def __init__(self):
         super().__init__()
 
     def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None,
-                                 ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+                                 ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Excludes the post if there's no 'vegan' category """
 
         if self.VEGAN_RECIPE_CATEGORY_ID not in recipe["categories"]:
@@ -172,13 +172,13 @@ class BeFitBeStrongScraper(TagsSearchingWordPressScraper):
     EXCLUDED_CATEGORIES_ID = [49, 447]  # 'mieso-i-ryby', owoce-morza
     VEGAN_RECIPE_CATEGORY_ID = 2  # 'weganskie'
     REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
-              f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_ID)}"
+                            f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_ID)}"
 
     def __init__(self):
         super().__init__()
 
     def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None,
-                                 ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+                                 ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Excludes the post if there's no 'vegan' category """
 
         if self.VEGAN_RECIPE_CATEGORY_ID not in recipe["categories"]:
@@ -245,7 +245,7 @@ class ZenWKuchniScraper(TagsSearchingWordPressScraper):
         super().__init__()
 
     def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None,
-                                 ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+                                 ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Excludes the post if there's no must include category """
 
         if self.MUST_INCLUDE_CATEGORY_ID not in recipe["categories"]:
@@ -278,13 +278,13 @@ class WilkuchniaScraper(TagsSearchingWordPressScraper):
     EXCLUDED_CATEGORIES_IDS = [273, 274]  # 'mieso', 'ryby'
     MUST_INCLUDE_CATEGORY_ID = 299  # 'weganskie'
     REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories_exclude=" \
-              f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_IDS)}"
+                            f"{list_el_merged_with_plus(EXCLUDED_CATEGORIES_IDS)}"
 
     def __init__(self):
         super().__init__()
 
     def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None,
-                                 ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+                                 ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Excludes the post if there's no must include category in recipe's categories """
 
         if self.MUST_INCLUDE_CATEGORY_ID not in recipe["categories"]:
@@ -466,7 +466,7 @@ class VeganRichaScraper(TagsSearchingWordPressScraper):
     """
     NAME = "Vegan Richa"
     DIET = CuisineType.VEGAN
-    WEB_URL = "https://veganricha.com"
+    WEB_URL = "https://www.veganricha.com"
 
     TAG_URL = WEB_URL + "/wp-json/wp/v2/tags?slug="
 
@@ -548,7 +548,7 @@ class RozkosznyScraper(TagsSearchingWordPressScraper):
         super().__init__()
 
     def web_recipe_exclusion_con(self, recipe=None, ingrs:list=None, meal_types:list=None,
-                                 ingrs_match:str=IngrMatch.FULL, *args, **kwargs) -> bool:
+                                 ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Checks if recipe should be excluded """
         if self.VEGAN_RECIPE_TAG_ID not in recipe["tags"]:
             return True

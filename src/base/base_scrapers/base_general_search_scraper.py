@@ -1,5 +1,5 @@
-from src.base.utils import IngrMatch, REQUEST_FAILED_MSG
-from src.base.base_scrapers.base_scraper import BaseScraper
+from src.base import IngrMatch, REQUEST_FAILED_MSG
+from src.base.base_scrapers import BaseScraper
 
 
 class GeneralSearchScraper(BaseScraper):
@@ -8,9 +8,6 @@ class GeneralSearchScraper(BaseScraper):
 
     def __init__(self):
         super().__init__()
-
-        # if self.REQUEST_URL is None:
-        #     self.REQUEST_URL = self.WEB_URL + "/api/search/GeneralSearch?q="
 
         self.ingr_param = ""
 

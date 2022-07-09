@@ -2,6 +2,7 @@ import logging
 
 from src.base.utils import MealType, IngrMatch
 
+
 class ParamsValidator:
     def __init__(self):
         pass
@@ -17,7 +18,6 @@ class ParamsValidator:
         """
         rv = response
 
-        # ingredients
         are_ingrs_valid, validated_ingrs, rv = self.are_ingrs_valid(params.get("ingrs"), rv)
         are_m_t_valid, validated_meal_types, rv = self.are_meal_types_valid(params.get("meal_types"), rv)
         is_ingrs_match_valid, validated_ingr_match, rv = self.is_ingr_match_valid(params.get("ingrs_match"), rv)
@@ -26,7 +26,6 @@ class ParamsValidator:
         are_valid = [are_ingrs_valid, are_m_t_valid, is_ingrs_match_valid]
         if not all(are_valid):
             return False, params, rv
-
 
         params["ingrs"] = validated_ingrs
 

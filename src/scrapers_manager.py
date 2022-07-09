@@ -3,7 +3,7 @@ from datetime import datetime
 import logging
 
 from scrapers_dict import scrapers_
-from src.base.params_validator import ParamsValidator
+from src.base import ParamsValidator
 
 class ScraperManager:
     def __init__(self):
@@ -31,20 +31,19 @@ class ScraperManager:
 
         self.args = args
 
+        logging.debug("Validation starts")
         validator = ParamsValidator()
         can_continue, self.kwargs, self.manager_response = validator.validation(params=kwargs, response=self.manager_response)
+        logging.debug("Validation ended")
 
         if not can_continue:
             logging.warning(f"Program can't continue, invalid params. Returned response {self.manager_response}")
             return self.manager_response
 
         start = datetime.now()
-        # recipes = [scraper.get_recipes(*args, **kwargs) for scraper in self.scrapers]
-        # print(f"Time taken: {datetime.now()-start}")
-
-        start = datetime.now()
 
         recipes = self.manage_many_scrapers_at_once(self.scrapers)
+        logging.debug("Recipes are ready")
 
         taken_time = round((datetime.now()-start).total_seconds(), 2)
         logging.info(f"Time taken: {taken_time}s")
@@ -58,7 +57,7 @@ class ScraperManager:
         logging.basicConfig(level=logging.INFO,
                             filename='sample.log',
                             filemode='a',
-                            format='[%(asctime)s] %(process)d [%(levelname)s] | %(message)s',
+                            format='[%(asctime)s] [%(levelname)s] | %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S')
 
     def manage_many_scrapers_at_once(self, scrapers=None):
@@ -69,12 +68,16 @@ class ScraperManager:
             args = self.args
             kwargs = self.kwargs
             web_recipes = scraper.get_recipes(*args, **kwargs)
+            logging.debug(f"{scraper.NAME} - recipes will be added immediately")
             recipes.append(web_recipes)
+            logging.debug(f"{scraper.NAME} - recipes have been added")
 
         def make_all_requests(scrapers) -> None:
             with ThreadPoolExecutor(max_workers=30) as executor:
                 executor.map(make_request, scrapers)
+                logging.debug("Mapping has been finished")
 
         make_all_requests(scrapers)
+        logging.debug("Multithreading finished")
 
         return recipes
