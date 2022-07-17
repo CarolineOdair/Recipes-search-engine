@@ -41,6 +41,7 @@ class MealType:
     DRINK = "napoje"
     SAUCE = "sosy"
     SNACKS = "przekaski"
+    PRESERVE = "przetwory"
 
     @classmethod
     def show_variables(cls):

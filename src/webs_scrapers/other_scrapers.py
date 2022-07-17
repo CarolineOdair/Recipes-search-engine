@@ -201,8 +201,6 @@ class WeganonScraper(BaseScraper):
             MealType.TO_BREAD: ["pasty-do-pieczywa"],
             MealType.SOUP: ["zupy-i-kremy"],
             MealType.BREAKFAST: ["sniadania"],
-            MealType.SNACKS: None,
-            MealType.DRINK: None,
         }
         return trans.get(meal_type)
 
@@ -307,7 +305,6 @@ class VeganbandaScraper(BaseScraper):
             MealType.LUNCH: ["do-szkoly-do-pracy"],
             MealType.BREAKFAST: ["sniadania"],
             MealType.SOUP: ["zupy"],
-            MealType.DESSERT: None,
         }
         return trans.get(meal_type)
 
@@ -321,6 +318,7 @@ class EkspresjaSmakuScraper(BaseScraper):
 
     NOT_FOUND_RECIPES_MSG = "Szukana fraza nie została znaleziona, spróbuj ponownie"
 
+    MUST_INCLUDE_CATEGORY = "Wegańskie"
     REQUEST_URL = WEB_URL + "/page/{}/?s"
 
     def __init__(self):
@@ -374,13 +372,16 @@ class EkspresjaSmakuScraper(BaseScraper):
 
         try:
             container = soup.find(class_="sp-grid col3")
-            recipes_containers = container.find_all(class_="entry-title")
+            recipes_containers = container.find_all(class_="post-header")
 
             for recipe in recipes_containers:
-                title = recipe.text
-                link = recipe.a["href"]
+                title_link_container = recipe.find(class_="entry-title")
+                title = title_link_container.text
+                link = title_link_container.a["href"]
 
-                yield self.recipe_data_to_dict(title=title, link=link)
+                categories = recipe.find(class_="cat").text
+                if self.MUST_INCLUDE_CATEGORY in categories:
+                    yield self.recipe_data_to_dict(title=title, link=link)
 
         except Exception:
             logging.exception(EXCEPTION_LOG_MSG)
@@ -413,7 +414,6 @@ class EkspresjaSmakuScraper(BaseScraper):
             MealType.BREAKFAST: [92],  # 'sniadanie'
             MealType.SOUP: [199],  # 'zupy'
             MealType.DESSERT: [108, 203],  # 'desery', 'ciasta'
-            MealType.SNACKS: None,
         }
         return trans.get(meal_type)
 

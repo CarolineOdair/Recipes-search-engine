@@ -26,7 +26,6 @@ class VegeneratBiegowyScraper(WordPressScraper):
             MealType.BREAKFAST: [7],  # 'sniadanie'
             MealType.SOUP: [5],  # 'zupa'
             MealType.LUNCH: [8],  # 'kolacja'
-            MealType.SAUCE: None,
         }
         return trans.get(meal_type)
 
@@ -53,7 +52,6 @@ class AgaMaSmakaScraper(WordPressScraper):
             MealType.BREAKFAST: [29],  # 'sniadania'
             MealType.DESSERT: [16],  # 'zdrowe-slodkosci'
             MealType.SOUP: [37],  # 'zupy'
-            MealType.SAUCE: None,
         }
         return trans.get(meal_type)
 
@@ -79,6 +77,9 @@ class UpieczonaScraper(WordPressScraper):
         elif MealType.DESSERT not in meal_types:
             return True
         return False
+
+    def meal_types_copy(self, meal_types:list=None) -> list:
+        return None
 
     def get_meal_types_translated(self, meal_types:list, *args, **kwargs) -> None:
         """ Returns 'None' because contrarily to the most WordPress websites in the project
@@ -116,9 +117,6 @@ class LittleHungryLadyScraper(WordPressScraper):
             MealType.DINNER: [1128],  # 'obiad'
             MealType.DRINK: [1175],  # 'napoj'
             MealType.SOUP: [1139],  # 'zupa'
-            MealType.TO_BREAD: None,
-            MealType.SNACKS: None,
-            MealType.SAUCE: None,
         }
         return trans.get(meal_type)
 
@@ -160,6 +158,5 @@ class AlaantkoweblwScraper(WordPressScraper):
             MealType.LUNCH: [16],  # 'na-wynos'
             MealType.BREAKFAST: [52, 47, 14],  # 'nalesniki', 'placki', 'sniadanie'
             MealType.SOUP: [22],  # 'zupy'
-            MealType.SAUCE: None,
         }
         return trans.get(meal_type)

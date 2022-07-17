@@ -39,9 +39,6 @@ class MadeleineOliviaScraper(GeneralSearchScraper):
             MealType.SNACKS: ["snack"],
             MealType.DRINK: ["drinks"],
             MealType.SAUCE: ["dips"],
-            MealType.SOUP: None,
-            MealType.LUNCH: None,
-            MealType.TO_BREAD: None,
         }
         return trans.get(meal_type)
 
@@ -79,9 +76,5 @@ class MinaRomeScraper(GeneralSearchScraper):
             MealType.DESSERT: ["Desserts", "Treats"],
             MealType.SNACKS: ["Snacks"],
             MealType.DRINK: ["Drinks"],
-            MealType.SAUCE: None,
-            MealType.SOUP: None,
-            MealType.LUNCH: None,
-            MealType.TO_BREAD: None,
         }
         return trans.get(meal_type)
