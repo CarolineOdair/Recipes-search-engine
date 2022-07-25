@@ -94,18 +94,17 @@ class LittleHungryLadyScraper(WordPressScraper):
     DIET = CuisineType.REGULAR
     WEB_URL = "https://littlehungrylady.pl"
 
-    RECIPE_CATEGORY_ID = 911
-    VEGAN_CATEGORY_ID = 1150
-    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100&categories={VEGAN_CATEGORY_ID}"
+    MUST_INCLUDE_CATEGORIES_IDS = [911, 1150]  # recipe and vegan categories
+    REQUEST_URL = WEB_URL + f"/wp-json/wp/v2/posts?per_page=100"
 
     def __init__(self):
         super().__init__()
 
-        self.meal_type_param = "&tag="
+        self.meal_type_param = "&tags="
 
     def exclude_one_recipe(self, recipe:str, ingrs=None, meal_types=None, ingrs_match:str=IngrMatch.FULL) -> bool:
         """ Excludes the post if there's no 'recipe' category """
-        if self.RECIPE_CATEGORY_ID not in recipe["categories"]:
+        if not do_list_includes_list(recipe["categories"], self.MUST_INCLUDE_CATEGORIES_IDS):
             return True
         return False
 
