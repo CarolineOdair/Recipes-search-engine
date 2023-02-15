@@ -5,6 +5,9 @@ from src.base import IngrMatch, REQUEST_FAILED_MSG
 
 
 class WordPressScraper(BaseScraper):
+
+    PRECISE_SEARCH = False
+
     def __init__(self):
         super().__init__()
         self.ingr_param = "&search="

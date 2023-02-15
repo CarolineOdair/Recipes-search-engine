@@ -4,6 +4,7 @@ from src.base import IngrMatch, do_list_includes_list
 
 class TagsSearchingWordPressScraper(WordPressScraper):
     TAG_URL = None
+    PRECISE_SEARCH = True
 
     def __init__(self):
         super().__init__()

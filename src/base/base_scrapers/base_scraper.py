@@ -13,6 +13,8 @@ class BaseScraper:
     WEB_URL = None
     REQUEST_URL = None
 
+    PRECISE_SEARCH = False  # True if search method enable to search precisely
+
     MAX_N_PAGES = 4  # while looping through pages (/page/n_page/...) MAX_N_PAGES is max n_page value
     TIMEOUT = 10
 
@@ -67,7 +69,7 @@ class BaseScraper:
                 url += param
         return url
 
-    def meal_types_copy(self, meal_types:list=None) -> list:
+    def meal_types_copy(self, meal_types:list=None) -> list or None:
         """ Returns meal_types copy or None if meal_types is None """
         if isinstance(meal_types, list):
             return meal_types.copy()

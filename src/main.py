@@ -1,14 +1,14 @@
 from pprint import pprint
 
 from scrapers_manager import ScraperManager
+from base import MealType
 
 
 if __name__ == "__main__":
 
     ingrs = ["tofu", "pesto"]
-    types = ["danie glowne", "sniadanie"]
+    types = [MealType.DINNER, MealType.LUNCH]
 
-    sm = ScraperManager()
-    # recipes = sm.get_recipes(ingrs=ingrs, meal_types=types, ingrs_match="partial")
-    recipes = sm.get_recipes(ingrs=ingrs, meal_types=types)
+    sm = ScraperManager(precise=False)
+    recipes = sm.get_recipes(ingrs=ingrs, types=types)
     pprint(recipes)

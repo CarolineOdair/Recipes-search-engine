@@ -6,9 +6,9 @@ from scrapers_dict import scrapers_
 from src.base import ParamsValidator
 
 class ScraperManager:
-    def __init__(self):
+    def __init__(self, precise=False):
         self.logger_setup()
-        self.scrapers = [scraper() for scraper in scrapers_.values()]
+        self.scrapers = [scraper() for scraper in scrapers_.values() if scraper.PRECISE_SEARCH == precise]
 
         self.manager_response = {
             "error": {"ingrs": "", "meal_types": "", "ingrs_match": "", "other": ""},
@@ -33,7 +33,8 @@ class ScraperManager:
 
         logging.debug("Validation starts")
         validator = ParamsValidator()
-        can_continue, self.kwargs, self.manager_response = validator.validation(params=kwargs, response=self.manager_response)
+        can_continue, self.kwargs, self.manager_response = \
+            validator.validation(params=kwargs, response=self.manager_response)
         logging.debug("Validation ended")
 
         if not can_continue:

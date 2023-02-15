@@ -13,6 +13,8 @@ class JadlonomiaScraper(BaseScraper):
     """
     # JadlonomiaScraper was the first one I was doing and after some time I've realised that
     # Jadlonomia.com also uses wp-json, so it would be much better if the scraper have inherited from WordPressScraper
+    PRECISE_SEARCH = True
+
     NAME = "Jadłonomia"
     DIET = CuisineType.VEGAN
     WEB_URL = "https://www.jadlonomia.com"
@@ -100,6 +102,8 @@ class WeganonScraper(BaseScraper):
     """
     Searches for recipes with given ingredients and for specified (or not) meal on 'weganon.pl'.
     """
+    PRECISE_SEARCH = False
+
     NAME = "Weganon"
     DIET = CuisineType.VEGAN
     WEB_URL = "https://weganon.pl"
@@ -208,6 +212,8 @@ class VeganbandaScraper(BaseScraper):
     """
     Searches for recipes with given ingredients and for specified (or not) meal on 'veganbanda.pl'.
     """
+    PRECISE_SEARCH = True
+
     NAME = "veganbanda"
     DIET = CuisineType.VEGAN
     WEB_URL = "https://veganbanda.pl"
@@ -312,6 +318,8 @@ class EkspresjaSmakuScraper(BaseScraper):
     """
     Searches for recipes with given ingredients and for specified (or not) meal on 'ekspresjasmaku.com'.
     """
+    PRECISE_SEARCH = False
+
     NAME = "Ekspresja Smaku"
     DIET = CuisineType.VEGAN
     WEB_URL = "https://ekspresjasmaku.com"
@@ -421,6 +429,8 @@ class WegannerdScraper(BaseScraper):
     """
     Searches for recipes with given ingredients on 'wegannerd.com'.
     """
+    PRECISE_SEARCH = False
+
     NAME = "wegan nerd"
     DIET = CuisineType.VEGAN
     WEB_URL = "https://www.wegannerd.com"
@@ -507,6 +517,8 @@ class TrueTasteHuntersScraper(BaseScraper):
     """
     Searches for recipes with given ingredients on 'truetastehunters.com'.
     """
+    PRECISE_SEARCH = True
+
     NAME = "true taste hunters"
     DIET = CuisineType.VEGAN
     WEB_URL = "https://www.truetastehunters.com"
@@ -606,6 +618,8 @@ class WegankaScraper(BaseScraper):
     """
     Searches for recipes with given ingredients on 'weganka.com'.
     """
+    PRECISE_SEARCH = False
+
     NAME = "wegAnka"
     DIET = CuisineType.VEGAN
     WEB_URL = "https://www.weganka.com"

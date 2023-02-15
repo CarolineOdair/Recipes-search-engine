@@ -5,6 +5,7 @@ from src.base.base_scrapers import BaseScraper
 class GeneralSearchScraper(BaseScraper):
 
     ENG_WEB = False
+    PRECISE_SEARCH = True
 
     def __init__(self):
         super().__init__()
