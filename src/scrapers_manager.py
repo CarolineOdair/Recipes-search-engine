@@ -8,7 +8,10 @@ from src.base import ParamsValidator
 class ScraperManager:
     def __init__(self, precise=False):
         self.logger_setup()
-        self.scrapers = [scraper() for scraper in scrapers_.values() if scraper.PRECISE_SEARCH == precise]
+        if precise:
+            self.scrapers = [scraper() for scraper in scrapers_.values() if scraper.PRECISE_SEARCH is True]
+        else:
+            self.scrapers = [scraper() for scraper in scrapers_.values()]
 
         self.manager_response = {
             "error": {"ingrs": "", "meal_types": "", "ingrs_match": "", "other": ""},
